@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Signing, versioning and the package metadata shared with the contracts are in ..\Directory.Build.props;
+       Authors, Company, Product and Copyright are in the Directory.Build.props at the root. -->
+  <PropertyGroup>
+    <Description>ForkForward.Mediator is a community fork of MediatR, the simple mediator implementation in .NET created by Jimmy Bogard. It continues the last Apache-2.0-licensed code of MediatR (12.5.0) with its own assembly name, namespace and signing key, ForkForward.Mediator: moving from MediatR 12 is a package reference, a using directive and AddMediator instead of AddMediatR. Independent project: not affiliated with or endorsed by the original authors.</Description>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <!-- The assembly name and the root namespace are the project name, ForkForward.Mediator. -->
+    <PackageId>ForkForward.Mediator</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IsExternalInit" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The contracts come from this repository and are published as ForkForward.Mediator.Contracts.
+         In the package this reference becomes a dependency on that package; see the target below. -->
+    <ProjectReference Include="..\ForkForward.Mediator.Contracts\ForkForward.Mediator.Contracts.csproj" />
+  </ItemGroup>
+
+  <!-- Pack turns a project reference into a dependency on "this version or newer". The mediator and its
+       contracts are built and released together with one version, so the dependency is pinned to exactly
+       that version, for example [12.6.0]: no other contracts version can be resolved for this package.
+       _GetProjectReferenceVersions and _ProjectReferencesWithVersions belong to NuGet's pack targets and are
+       not a public contract; the release workflow checks the resulting dependency before anything is published. -->
+  <Target Name="PinContractsDependency" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(_ProjectReferencesWithVersions.ProjectVersion)' != ''">
+        <ProjectVersion>[%(_ProjectReferencesWithVersions.ProjectVersion)]</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+
+</Project>

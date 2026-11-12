@@ -1,8 +1,7 @@
 name: Release
 
 # Builds, tests, packs and publishes ForkForward.Mediator and ForkForward.Mediator.Contracts to nuget.org
-# for a version tag such as v12.6.0 or v12.6.0-preview.1. The tag is the version of the mediator; the
-# contracts have their own version, set in src/MediatR.Contracts/MediatR.Contracts.csproj.
+# for a version tag such as v12.6.0 or v12.6.0-preview.2. The tag is the version of both packages.
 #
 # Run by hand (Actions > Release > Run workflow) it is a dry run: it builds, tests, packs and checks
 # the package, keeps it as an artifact of the run, and publishes nothing.
@@ -83,6 +82,8 @@ jobs:
         $version = $Matches[1]
         if ($contracts[0].Name -notmatch '^ForkForward\.Mediator\.Contracts\.(\d+\.\d+\.\d+.*)\.nupkg$') { throw "Unexpected name: $($contracts[0].Name)" }
         $contractsVersion = $Matches[1]
+        # Both packages are built from one tag and have one version.
+        if ($contractsVersion -ne $version) { throw "ForkForward.Mediator is $version but ForkForward.Mediator.Contracts is $contractsVersion." }
 
         if ($env:GITHUB_REF_TYPE -eq 'tag') {
           # A release is published with exactly the version of its tag.
@@ -105,10 +106,10 @@ jobs:
         $contractsPackage = Read-Package $contracts[0]
 
         # The licence and the attribution notice travel with every copy of the packages.
-        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net6.0/MediatR.dll', 'lib/netstandard2.0/MediatR.dll') {
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net6.0/ForkForward.Mediator.dll', 'lib/netstandard2.0/ForkForward.Mediator.dll') {
           if ($mediatorPackage.Entries -notcontains $required) { throw "$($mediator[0].Name) does not contain $required." }
         }
-        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/netstandard2.0/MediatR.Contracts.dll') {
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/netstandard2.0/ForkForward.Mediator.Contracts.dll') {
           if ($contractsPackage.Entries -notcontains $required) { throw "$($contracts[0].Name) does not contain $required." }
         }
 
@@ -172,8 +173,8 @@ jobs:
         # nuget.org rejects the login with HTTP 401 for either of those.
         user: ${{ secrets.NUGET_USER }}
     # Pushing a .nupkg also pushes the .snupkg next to it to the symbol server.
-    # The contracts package keeps its version across releases of the mediator; --skip-duplicate leaves the
-    # copy that is already on nuget.org as it is, since a published version cannot be replaced.
+    # --skip-duplicate: when a run is started again after a partial push, the package that is already on
+    # nuget.org is left as it is, since a published version cannot be replaced.
     - name: NuGet push
       run: dotnet nuget push "packages/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
     # The notes are the section of CHANGELOG.md whose heading names this version. A preview has no
