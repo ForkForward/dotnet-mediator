@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The "baseline" side of the comparison: the benchmark sources of ../ForkForward.Mediator.Benchmarks compiled
+       against a published package instead of the library in this repository. See Benchmark.ps1.
+
+       The baseline is the last release. After each release, raise BaselineVersion.
+       To compare with something else, set the environment variables BaselinePackage, BaselineVersion and
+       BaselineNamespace (Benchmark.ps1 does it for you); for example MediatR 12.5.0, the code this fork started
+       from. They are environment variables rather than command-line properties because BenchmarkDotNet builds
+       this project again on its own, and only the environment reaches that build. -->
+  <PropertyGroup>
+    <BaselinePackage Condition="'$(BaselinePackage)' == ''">ForkForward.Mediator</BaselinePackage>
+    <BaselineVersion Condition="'$(BaselineVersion)' == ''">12.7.0</BaselineVersion>
+    <!-- The namespace of the baseline package. The benchmark sources do not name it; each side gets it from its
+         project. ForkForward.Mediator from 12.7.0 on; MediatR for MediatR itself and for 12.6.0-preview.1. -->
+    <BaselineNamespace Condition="'$(BaselineNamespace)' == ''">ForkForward.Mediator</BaselineNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Benchmarks</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!-- Packages with the original namespace also have the original registration names (AddMediatR,
+         MediatRServiceConfiguration). Library.cs is the only source file that depends on this. -->
+    <DefineConstants Condition="'$(BaselineNamespace)' == 'MediatR'">$(DefineConstants);ORIGINAL_NAMES</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ForkForward.Mediator.Benchmarks\**\*.cs" Exclude="..\ForkForward.Mediator.Benchmarks\bin\**;..\ForkForward.Mediator.Benchmarks\obj\**" LinkBase="Benchmarks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="$(BaselinePackage)" Version="[$(BaselineVersion)]" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="$(BaselineNamespace)" />
+    <Using Include="$(BaselineNamespace).Pipeline" />
+  </ItemGroup>
+
+</Project>

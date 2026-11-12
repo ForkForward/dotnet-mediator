@@ -34,6 +34,7 @@ If you want new features from the original authors, or commercial support, use t
 - Changes are produced with AI coding tools and automation such as Dependabot.
 - A person reviews every change before it is merged and decides what gets released.
 - No code is taken from MediatR 13.0.0 or later, or from any source whose licence does not allow it. The branches and tags of this repository stop at `v12.5.0` of the original.
+- Every change to the library is measured against the last release before it is merged, and again before it is published: it must not be slower and must not allocate more memory.
 
 The full rules are in [AI_POLICY.md](AI_POLICY.md).
 

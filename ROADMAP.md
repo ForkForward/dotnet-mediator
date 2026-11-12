@@ -22,10 +22,10 @@ Where ForkForward.Mediator is going, and the decisions that are still open. Open
 ## Phase 1: keep it building
 
 - [x] Dependency review on pull requests: known vulnerabilities and licences of added or updated dependencies
-- [ ] Make the CI build and Dependency review checks required on `main`, next to `origin guard`
+- [ ] Make the CI build, the Dependency review and the Benchmark verdict (`compare with the last release`) checks required on `main`, next to `origin guard`
 - [ ] **Decision needed: which .NET versions the library targets.** Today `netstandard2.0` and `net6.0`, as in MediatR 12.5.0. .NET 6 is out of support and the SDK warns about it (`NETSDK1138`)
 - [ ] Tests, benchmarks and samples on a supported .NET version (today the tests target `net8.0`, the benchmarks and one sample `net6.0`)
-- [ ] Performance gate: compare speed and allocations with the last release on pull requests and before publishing, as `Benchmark.ps1` does in dotnet-mapper. The benchmarks in `test/ForkForward.Mediator.Benchmarks` are the starting point
+- [x] Performance gate: speed and allocations are compared with the last release on pull requests and before publishing (`Benchmark.ps1`, the Benchmark workflow). Seven call benchmarks (`Send` in four forms, `Publish` to one and to three handlers, a stream), one startup benchmark checked for allocations only, and two reference benchmarks that measure the noise of the machine
 - [ ] Fix the intermittent failure of `GenericRequestHandlerTests.ShouldThrowExceptionWhenTimeoutOccurs` (1 of 4 local runs on 2026-11-12). The cause is in the code inherited from 12.5.0: `ServiceRegistrar` keeps the generic-handler registration limits (`MaxTypesClosing`, `RegistrationTimeout` and two more) in static fields, so two `AddMediator` calls running at the same time overwrite each other's limits, and xUnit runs test classes in parallel. It is a real defect for applications that build two containers concurrently with different limits, not only a test problem. Until it is fixed, a red CI run with only this test failing is rerun
 - [ ] Work through the Dependabot updates
 - [ ] Check the public advisories for MediatR up to 12.5.0; anything found is fixed independently, from the advisory and this code
@@ -48,7 +48,7 @@ The first preview was published on 2026-11-12: tag `v12.6.0-preview.1`, [`ForkFo
    - [x] On nuget.org, `ForkForward.Mediator` 12.6.0-preview.1 and `ForkForward.Mediator.Contracts` 2.6.0 are unlisted (maintainer, 2026-11-12), so that nobody picks the versions with the original names. They can still be restored by projects that name them exactly; a published version cannot be deleted or replaced.
    - [x] First deploy: dry run of the release workflow on `main`, then the tag `v12.6.0-preview.1`. The published package was then installed from nuget.org into a new .NET 8 application and used there.
 
-   Release steps for the next version: merge what goes in; start the Release workflow by hand on `main` for a dry run; push the tag `v<version>` on `main`. Both packages are published with that version.
+   Release steps for the next version: merge what goes in; start the Release workflow by hand on `main` for a dry run; push the tag `v<version>` on `main`; the release workflow builds, runs the benchmark against the baseline and publishes both packages with that version; then raise `BaselineVersion` in `test/ForkForward.Mediator.Benchmarks.Baseline/ForkForward.Mediator.Benchmarks.Baseline.csproj`.
 6. [x] NuGet-specific readmes (`src/ForkForward.Mediator/PACKAGE.md`, `src/ForkForward.Mediator.Contracts/PACKAGE.md`) and `CHANGELOG.md`, linked from the package as release notes.
 7. [x] The guide [Moving from MediatR 12](docs/Moving-from-MediatR-12.md).
 8. [x] `12.7.0` released on 2026-11-12, the first stable release and the first version with the fork's own names: tag `v12.7.0`, [`ForkForward.Mediator` 12.7.0](https://www.nuget.org/packages/ForkForward.Mediator/12.7.0) and [`ForkForward.Mediator.Contracts` 12.7.0](https://www.nuget.org/packages/ForkForward.Mediator.Contracts/12.7.0) on nuget.org, [GitHub release](https://github.com/ForkForward/dotnet-mediator/releases/tag/v12.7.0) created by the workflow. The published assemblies carry the public key token `fe080643cbba1f62`; `dotnet add package ForkForward.Mediator`, without `--prerelease`, installs it.

@@ -1,9 +1,8 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ForkForward.Mediator.Pipeline;
 
-namespace ForkForward.Mediator.Benchmarks
+namespace Benchmarks
 {
     public class GenericRequestPostProcessor<TRequest, TResponse> : IRequestPostProcessor<TRequest, TResponse>
         where TRequest : notnull

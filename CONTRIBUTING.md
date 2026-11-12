@@ -44,11 +44,30 @@ The SDK prints warning `NETSDK1138` for the projects that target `net6.0`. It is
 
 ## Performance
 
-The library must not get slower, or allocate more memory, than the last release. There is no automatic check for this yet (see the roadmap). If your change touches `src/ForkForward.Mediator`, run the benchmarks before and after it and put both results in the pull request:
+The library must not get slower, or allocate more memory, than the last release. `Benchmark.ps1` checks it:
 
 ```powershell
-dotnet run -c Release --project test/ForkForward.Mediator.Benchmarks
+./Benchmark.ps1
 ```
+
+It builds the same benchmarks twice, against the library in this repository and against the last published package, measures both on your machine in alternating rounds, and prints a comparison. It takes about eight minutes. It fails when a call benchmark is more than 10 % slower than the baseline, or when any benchmark allocates more memory.
+
+To compare with the code this fork started from:
+
+```powershell
+./Benchmark.ps1 -BaselinePackage MediatR -BaselineVersion 12.5.0 -BaselineNamespace MediatR
+```
+
+CI runs the same comparison on every pull request that changes the library, its dependencies or the benchmarks, and once more before a release is published. A few things to know about the result:
+
+- **Allocations are exact.** They do not depend on how busy the machine is, so an increase is always a real one.
+- **Timings are noisy on shared machines.** The fastest iteration of each side is compared, because other work on the machine only ever adds time. The benchmarks in `ReferenceBenchmarks` do not use the library, so both sides must measure the same there. When they do not, the run is reported as inconclusive instead of as a regression: run the job again.
+- **CI measures on two runners and believes a slowdown only when both see it.** The two sides are two separately compiled assemblies of the same code, and on some machines the JIT lays one of them out less favourably; a single runner then reports one benchmark 10 % slower that another runner does not see at all. A slowdown on one runner only is shown as "not confirmed" and does not fail the check. More allocations on either runner do. Locally, `./Benchmark.ps1 -MergeVerdicts a/verdict.json, b/verdict.json` judges two runs the same way.
+- **Startup benchmarks are checked for allocations only.** The time to register the handlers and build a container varies too much between runs to be a gate; it is shown for information.
+
+New benchmarks go into `test/ForkForward.Mediator.Benchmarks`. The same sources are compiled against the baseline package, so a benchmark can only use API that the last release already has, and they do not name the library's namespace: each project supplies it. `Library.cs` is the only file that names the registration method.
+
+After a release, raise `BaselineVersion` in `test/ForkForward.Mediator.Benchmarks.Baseline/ForkForward.Mediator.Benchmarks.Baseline.csproj` to the version just released.
 
 ## Commit messages
 
