@@ -39,8 +39,13 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
-- **No package has been published yet.** The packages will be `ForkForward.Mediator` and `ForkForward.Mediator.Contracts` on nuget.org. The plan and the decisions that are still open are in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
-- The code is MediatR 12.5.0. The assembly is still `MediatR.dll` and the namespace is still `MediatR`; whether they are renamed before the first release is an open decision in the roadmap.
+- **A first preview is on nuget.org:** [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator) `12.6.0-preview.1`, with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) `2.6.0`. There is no stable release yet. The plan and the decisions that are still open are in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
+
+  ```
+  dotnet add package ForkForward.Mediator --prerelease
+  ```
+
+- The code is MediatR 12.5.0. The assembly is still `MediatR.dll` and the namespace is still `MediatR`; whether they are renamed before the first stable release is an open decision in the roadmap.
 - The library builds and its 158 tests pass with a current .NET SDK.
 
 ## Using it
