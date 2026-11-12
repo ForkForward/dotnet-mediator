@@ -11,7 +11,7 @@
 version: 2
 updates:
   - package-ecosystem: nuget
-    directories: ["/src/MediatR", "/src/MediatR.Contracts", "/test/MediatR.Tests", "/test/MediatR.Benchmarks", "/samples/*"]
+    directories: ["/src", "/src/ForkForward.Mediator", "/src/ForkForward.Mediator.Contracts", "/test/ForkForward.Mediator.Tests", "/test/ForkForward.Mediator.Benchmarks", "/samples/*"]
     schedule:
       interval: weekly
       day: monday

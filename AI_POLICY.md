@@ -44,8 +44,8 @@ If you are not sure whether something is allowed, ask in an issue before you ope
 
 People use this fork so that existing code keeps working.
 
-- The public API stays compatible with MediatR 12.5.0: the same types and members. A pull request that changes a public type or member says so, and needs an explicit decision by a maintainer.
-- The namespace, the assembly name and the signing key are not changed without a decision recorded in [ROADMAP.md](ROADMAP.md). Type and member names are not renamed without one either.
+- The public API stays compatible with MediatR 12.5.0, under the `ForkForward.Mediator` namespace: the same types and members, except for the two names that carried the old name (`AddMediator`, `MediatorServiceConfiguration`), so that moving a project is a package reference, a `using` directive and those two names. A pull request that changes a public type or member says so, and needs an explicit decision by a maintainer.
+- The namespace, the assembly names and the signing key were changed to the fork's own in 12.7.0, by a decision recorded in [ROADMAP.md](ROADMAP.md). They, and type and member names, are not changed again without one.
 - Behaviour changes need a test that shows the old and the new behaviour.
 - Speed is part of compatibility. A change must not make the library slower, or make it allocate more memory, than the last release. An automatic comparison in CI, like the one in [dotnet-mapper](https://github.com/ForkForward/dotnet-mapper), is planned in the roadmap; until it exists, a pull request that touches the library says how this was checked.
 

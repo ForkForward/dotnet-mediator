@@ -39,13 +39,14 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
-- **A first preview is on nuget.org:** [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator) `12.6.0-preview.1`, with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) `2.6.0`. There is no stable release yet. The plan and the decisions that are still open are in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
+- The first stable release is `12.7.0`, on nuget.org: [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator), with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) in the same version. What changed in each release is in [CHANGELOG.md](CHANGELOG.md); the plan is in [ROADMAP.md](ROADMAP.md).
 
   ```
-  dotnet add package ForkForward.Mediator --prerelease
+  dotnet add package ForkForward.Mediator
   ```
 
-- The code is MediatR 12.5.0. The assembly is still `MediatR.dll` and the namespace is still `MediatR`; whether they are renamed before the first stable release is an open decision in the roadmap.
+- Do not use `ForkForward.Mediator` 12.6.0-preview.1 or `ForkForward.Mediator.Contracts` 2.6.0. They were published before the rename described below and still contain `MediatR.dll` and `MediatR.Contracts.dll`. There is no 12.6.0.
+- The code is MediatR 12.5.0 under its own names. The assemblies are `ForkForward.Mediator.dll` and `ForkForward.Mediator.Contracts.dll`, the namespaces start with `ForkForward.Mediator`, and both are signed with the fork's own key. Nothing in the public API carries the old name: `AddMediatR` is `AddMediator` and `MediatRServiceConfiguration` is `MediatorServiceConfiguration`. All other types, their members and the behaviour are those of MediatR 12.5.0. Moving a project is a package reference, a `using` directive and those two names: [Moving from MediatR 12](docs/Moving-from-MediatR-12.md).
 - The library builds and its 158 tests pass with a current .NET SDK.
 
 ## Using it
@@ -57,13 +58,15 @@ In-process messaging with no dependencies. It supports request/response, command
 `Microsoft.Extensions.DependencyInjection.Abstractions` is supported directly. To register the services and handlers:
 
 ```csharp
-services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Startup>());
+using ForkForward.Mediator;
+
+services.AddMediator(cfg => cfg.RegisterServicesFromAssemblyContaining<Startup>());
 ```
 
 or with an assembly:
 
 ```csharp
-services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Startup).Assembly));
+services.AddMediator(cfg => cfg.RegisterServicesFromAssembly(typeof(Startup).Assembly));
 ```
 
 This registers:
@@ -87,7 +90,7 @@ This also registers open generic implementations for:
 To register behaviors, stream behaviors, pre/post processors:
 
 ```csharp
-services.AddMediatR(cfg => {
+services.AddMediator(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(Startup).Assembly);
     cfg.AddBehavior<PingPongBehavior>();
     cfg.AddStreamBehavior<PingPongStreamBehavior>();
@@ -103,7 +106,7 @@ Runnable examples for several containers are in [samples](samples).
 
 ### The contracts
 
-`IRequest`, `INotification`, `IStreamRequest` and `Unit` live in a separate assembly, `MediatR.Contracts.dll`. This fork builds it from `src/MediatR.Contracts` and publishes it as its own package, `ForkForward.Mediator.Contracts`, version 2.6.0. The code and the public types are those of the original `MediatR.Contracts` 2.0.1. `ForkForward.Mediator` depends on exactly that version, `[2.6.0]`, and on no package of the original project.
+`IRequest`, `INotification`, `IStreamRequest` and `Unit` live in a separate assembly, `ForkForward.Mediator.Contracts.dll`, in the same namespace as the mediator. This fork builds it from `src/ForkForward.Mediator.Contracts` and publishes it as its own package, `ForkForward.Mediator.Contracts`. The code and the public types are those of the original `MediatR.Contracts` 2.0.1. Both packages always have the same version, and `ForkForward.Mediator` depends on exactly that version of the contracts and on no package of the original project.
 
 Reference `ForkForward.Mediator.Contracts` alone where your requests and notifications live in a separate assembly from their handlers, for example API contracts, gRPC contracts or Blazor.
 

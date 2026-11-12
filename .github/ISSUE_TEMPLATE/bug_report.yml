@@ -19,7 +19,7 @@ body:
     id: registration
     attributes:
       label: Registration
-      description: The `AddMediatR` call, or how the services are registered in another container.
+      description: The `AddMediator` call, or how the services are registered in another container.
       render: csharp
     validations:
       required: true

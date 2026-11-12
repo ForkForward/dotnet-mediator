@@ -1,0 +1,53 @@
+<Project>
+  <Import Project="..\Directory.Build.props" />
+
+  <!-- What the two published projects, ForkForward.Mediator and ForkForward.Mediator.Contracts, have in common. -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <Features>strict</Features>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- The fork's own strong-name key. The original MediatR key is no longer in the repository. -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\ForkForward.Mediator.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- One version for both packages, taken from the git tags: a tag v12.7.0 builds 12.7.0, a tag
+         v12.8.0-preview.1 builds 12.8.0-preview.1. Commits after the last tag build a preview, for example
+         12.7.1-preview.0.4 for the fourth commit after v12.7.0.
+         The minimum is the fork's first release line. 12.6 is skipped: its only version, 12.6.0-preview.1, was
+         published with the original assembly names. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>12.7</MinVerMinimumMajorMinor>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTags>mediator;request;response;queries;commands;notifications;mediatr;fork;forkforward</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/ForkForward/dotnet-mediator</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\icon.png" Pack="true" PackagePath="" Visible="False" />
+    <None Include="$(MSBuildProjectDirectory)\PACKAGE.md" Pack="true" PackagePath="" />
+    <!-- The licence and the attribution notice travel with every copy of the packages. -->
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="" Visible="False" />
+    <None Include="$(MSBuildThisFileDirectory)..\NOTICE.md" Pack="true" PackagePath="" Visible="False" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

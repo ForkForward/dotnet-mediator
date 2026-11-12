@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Signing, versioning and the package metadata shared with the mediator are in ..\Directory.Build.props;
+       Authors, Company, Product and Copyright are in the Directory.Build.props at the root. -->
+  <PropertyGroup>
+    <Description>ForkForward.Mediator.Contracts is the contracts package of ForkForward.Mediator, a community fork of MediatR: the request, response and notification contracts (IRequest, INotification, IStreamRequest, Unit) of MediatR.Contracts 2.0.1 in the namespace ForkForward.Mediator, without the mediator itself. Independent project: not affiliated with or endorsed by the original authors.</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- The assembly name is the project name, ForkForward.Mediator.Contracts. The types live in the same
+         namespace as the mediator, as they did in the original. -->
+    <PackageId>ForkForward.Mediator.Contracts</PackageId>
+    <RootNamespace>ForkForward.Mediator</RootNamespace>
+  </PropertyGroup>
+
+</Project>

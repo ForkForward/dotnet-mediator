@@ -28,7 +28,7 @@ Changes in this fork are written with AI coding tools and automation and are rev
 
 ForkForward is an independent project. It is not affiliated with, sponsored by, or endorsed by Jimmy Bogard, Lucky Penny Software or the MediatR project.
 
-"MediatR" is the name of the original project and belongs to its owners. This fork uses the name only to identify the origin of the code and to describe compatibility. The assembly name (`MediatR.dll`), the namespace (`MediatR`) and type and member names such as `AddMediatR` are those of the original at the fork point and are kept for binary and source compatibility; whether the assembly and the namespace are renamed is recorded in [ROADMAP.md](ROADMAP.md). The fork is distributed under its own name, `ForkForward.Mediator`, and with its own logo.
+"MediatR" is the name of the original project and belongs to its owners. This fork uses the name only to identify the origin of the code and to describe compatibility. Since version 12.7.0 the assemblies (`ForkForward.Mediator.dll`, `ForkForward.Mediator.Contracts.dll`), the namespaces and the signing key are the fork's own, and no public type or member carries the old name: `AddMediatR` became `AddMediator` and `MediatRServiceConfiguration` became `MediatorServiceConfiguration`. The fork is distributed under its own name, `ForkForward.Mediator`, and with its own logo.
 
 ## Code that must not enter this fork
 
@@ -42,10 +42,10 @@ The authoritative list is the git history: `git log v12.5.0..HEAD`. As the Apach
 
 Summary by area:
 
-- **Identity:** packages renamed to `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`; new logo, and the original logo files removed; README and package readme rewritten to state the origin of the code.
+- **Identity:** packages renamed to `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`; assemblies, namespaces, projects and folders renamed from `MediatR` to `ForkForward.Mediator`; the identifiers that carried the old name renamed (`AddMediator`, `MediatorServiceConfiguration`, `AddMediatorClasses`, `AddMediatorClassesWithTimeout`); the original signing key replaced by the fork's own; new logo, and the original logo files removed; README and package readmes rewritten to state the origin of the code.
 - **Removed things that do not apply to the fork:** the original package feeds and the scripts that pushed to them, the build badges of the original project, the DevSkim workflow.
-- **Packaging:** `LICENSE` and this file are packed into the NuGet package; versions continue above 12.5.0; the `MediatR.Contracts` project is packed as `ForkForward.Mediator.Contracts` 2.6.0, because the package name `MediatR.Contracts` belongs to the original authors, and the library depends on exactly that version instead of on the original package.
+- **Packaging:** `LICENSE` and this file are packed into both NuGet packages; versions continue above 12.5.0; the contracts are packed as `ForkForward.Mediator.Contracts`, because the package name `MediatR.Contracts` belongs to the original authors; both packages have one version and the mediator depends on exactly that version of the contracts instead of on the original package.
 - **Build:** continuous integration runs on Windows and on Ubuntu; dependency changes are reviewed on pull requests; Dependabot configuration for dependency updates.
 - **Project rules:** AI development policy, roadmap, contribution guide, issue forms and pull request template.
 
-No public API of the library or of the contracts has been changed, and no file under `src/MediatR` or `src/MediatR.Contracts` other than the two project files and the two package readmes.
+Apart from those renames no public API of the library or of the contracts has been changed: the exported types and members were compared with the 12.5.0 code, and after applying the renames there is no difference. Every source file is touched by the namespace rename; none has any other change.
