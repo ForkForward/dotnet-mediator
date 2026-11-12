@@ -50,7 +50,7 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 - Do not use `ForkForward.Mediator` 12.6.0-preview.1 or `ForkForward.Mediator.Contracts` 2.6.0. They were published before the rename described below and still contain `MediatR.dll` and `MediatR.Contracts.dll`. There is no 12.6.0.
 - The code is MediatR 12.5.0 under its own names. The assemblies are `ForkForward.Mediator.dll` and `ForkForward.Mediator.Contracts.dll`, the namespaces start with `ForkForward.Mediator`, and both are signed with the fork's own key. Nothing in the public API carries the old name: `AddMediatR` is `AddMediator` and `MediatRServiceConfiguration` is `MediatorServiceConfiguration`. All other types, their members and the behaviour are those of MediatR 12.5.0. Moving a project is a package reference, a `using` directive and those two names: [Moving from MediatR 12](docs/source/Moving-from-MediatR-12.md).
-- The library builds without warnings from the trimming and AOT analyzers, its 171 tests pass on .NET 10 and on .NET 11, and a test application published with Native AOT passes 38 scenarios on both.
+- The library builds without warnings from the trimming and AOT analyzers, its 173 tests pass on .NET 10 and on .NET 11, and a test application published with Native AOT passes 38 scenarios on both.
 
 ## Using it
 

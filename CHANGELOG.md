@@ -24,6 +24,10 @@ This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET 
 
 - The package's project website on nuget.org is the documentation site instead of the GitHub repository; the repository is still linked as the source. Both package readmes link the documentation.
 
+### Fixed
+
+- **Two registrations at the same time no longer share their limits.** The limits for generic request handlers (`MaxGenericTypeParameters`, `MaxTypesClosing`, `MaxGenericTypeRegistrations`) and `RegistrationTimeout` were kept in static fields, so an `AddMediator` call running at the same time as another one could be held to the other's limits or time out by the other's timeout. Each registration now uses the configuration it was given. If you call `ServiceRegistrar.AddMediatorClasses` or `AddMediatorClassesWithTimeout` directly, they take the limits and the timeout from their `configuration` argument; `SetGenericRequestHandlerRegistrationLimitations` now only matters for direct calls of `ServiceRegistrar.GenerateCombinations`. This was also why the test `ShouldThrowExceptionWhenTimeoutOccurs` failed now and then.
+
 ## [12.8.0] - 2026-11-12
 
 The library moves to current .NET. There are no changes to its code or to what it does.
