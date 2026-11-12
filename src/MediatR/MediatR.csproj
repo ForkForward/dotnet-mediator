@@ -1,19 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Authors>Jimmy Bogard</Authors>
-    <Description>Simple, unambitious mediator implementation in .NET</Description>
-    <Copyright>Copyright Jimmy Bogard</Copyright>
+    <!-- Authors, Company, Product and Copyright come from Directory.Build.props. -->
+    <Description>ForkForward.Mediator is a community fork of MediatR, the simple mediator implementation in .NET created by Jimmy Bogard. It continues the last Apache-2.0-licensed code of MediatR (12.5.0): the assembly, the namespace and the API are those of MediatR 12.5.0. Independent project: not affiliated with or endorsed by the original authors.</Description>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <Features>strict</Features>
-    <PackageTags>mediator;request;response;queries;commands;notifications</PackageTags>
+    <!-- The package has the fork's own name. The assembly name, the namespace and the signing key are still
+         the original ones; see ROADMAP.md, phase 2. -->
+    <PackageId>ForkForward.Mediator</PackageId>
+    <PackageTags>mediator;request;response;queries;commands;notifications;mediatr;fork;forkforward</PackageTags>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\MediatR.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageIcon>gradient_128x128.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/ForkForward/dotnet-mediator</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <!-- The version comes from the git tags: a tag v12.6.0 builds 12.6.0, a tag v12.6.0-preview.1 builds 12.6.0-preview.1.
+         Commits after the last tag build a preview, for example 12.6.0-preview.0.4 for the fourth commit after it.
+         The minimum keeps the fork's versions above the original 12.5.0 it was forked from. -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>12.6</MinVerMinimumMajorMinor>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -24,7 +33,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\assets\logo\gradient_128x128.png" Pack="true" PackagePath="" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="False" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="" />
+    <!-- The licence and the attribution notice travel with every copy of the package. -->
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" Visible="False" />
+    <None Include="..\..\NOTICE.md" Pack="true" PackagePath="" Visible="False" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,15 +45,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- The contracts package published by the original authors; 2.0.1 is under the Apache License 2.0.
+         Whether the fork publishes its own is an open decision: ROADMAP.md, phase 2. -->
     <PackageReference Include="MediatR.Contracts" Version="[2.0.1, 3.0.0)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

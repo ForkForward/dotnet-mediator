@@ -2,16 +2,18 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <Authors>Jimmy Bogard</Authors>
+    <!-- Authors, Company, Product and Copyright come from Directory.Build.props. -->
     <Description>Contracts package for requests, responses, and notifications</Description>
-    <Copyright>Copyright Jimmy Bogard</Copyright>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Features>strict</Features>
+    <!-- Not packed: the package id MediatR.Contracts belongs to the original authors. The library depends on
+         their published MediatR.Contracts 2.0.1 instead. Whether the fork publishes a contracts package under
+         its own name is an open decision: ROADMAP.md, phase 2. -->
+    <IsPackable>false</IsPackable>
     <PackageTags>mediator;request;response;queries;commands;notifications</PackageTags>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\MediatR.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageIcon>gradient_128x128.png</PackageIcon>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -22,10 +24,6 @@
     <RootNamespace>MediatR</RootNamespace>
 
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\..\assets\logo\gradient_128x128.png" Pack="true" PackagePath="" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />

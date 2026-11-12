@@ -1,5 +1,10 @@
 <Project>
   <PropertyGroup>
+    <!-- Who publishes this fork. The original authors are credited in Copyright, in the package description and in NOTICE.md. -->
+    <Authors>ForkForward</Authors>
+    <Company>ForkForward</Company>
+    <Product>ForkForward.Mediator (fork of MediatR)</Product>
+    <Copyright>Copyright Jimmy Bogard and MediatR contributors. Modifications copyright 2026 ForkForward contributors.</Copyright>
     <LangVersion>10.0</LangVersion>
     <NoWarn>$(NoWarn);CS1701;CS1702;CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320" role="img" aria-labelledby="t d">
+  <title id="t">ForkForward.Mediator</title>
+  <desc id="d">ForkForward.Mediator: a community fork of MediatR under the Apache License 2.0, developed with AI tools.</desc>
+  <rect width="1280" height="320" rx="32" fill="#14213D"/>
+  <g transform="translate(56 48) scale(0.875)">
+    <g fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M66 128 C 118 128 106 76 158 76 H 196"/>
+      <path d="M66 128 C 118 128 106 180 158 180 H 196"/>
+      <path d="M174 52 L 198 76 L 174 100"/>
+      <path d="M174 156 L 198 180 L 174 204"/>
+    </g>
+    <circle cx="66" cy="128" r="26" fill="#14213D"/>
+    <circle cx="66" cy="128" r="18" fill="#1695CA"/>
+  </g>
+  <g font-family="'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif">
+    <text x="296" y="156" font-size="76" font-weight="700" fill="#FFFFFF">ForkForward<tspan fill="#1695CA">.</tspan>Mediator</text>
+    <text x="300" y="220" font-size="30" font-weight="400" fill="#B8C4DC">Community fork of MediatR &#183; Apache-2.0 &#183; developed with AI tools</text>
+  </g>
+</svg>
