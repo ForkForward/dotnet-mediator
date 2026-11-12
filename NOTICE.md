@@ -42,10 +42,10 @@ The authoritative list is the git history: `git log v12.5.0..HEAD`. As the Apach
 
 Summary by area:
 
-- **Identity:** package renamed to `ForkForward.Mediator`; new logo, and the original logo files removed; README and package readme rewritten to state the origin of the code.
+- **Identity:** packages renamed to `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`; new logo, and the original logo files removed; README and package readme rewritten to state the origin of the code.
 - **Removed things that do not apply to the fork:** the original package feeds and the scripts that pushed to them, the build badges of the original project, the DevSkim workflow.
-- **Packaging:** `LICENSE` and this file are packed into the NuGet package; versions continue above 12.5.0; the `MediatR.Contracts` project is no longer packed, because that package name belongs to the original authors.
+- **Packaging:** `LICENSE` and this file are packed into the NuGet package; versions continue above 12.5.0; the `MediatR.Contracts` project is packed as `ForkForward.Mediator.Contracts` 2.6.0, because the package name `MediatR.Contracts` belongs to the original authors, and the library depends on exactly that version instead of on the original package.
 - **Build:** continuous integration runs on Windows and on Ubuntu; dependency changes are reviewed on pull requests; Dependabot configuration for dependency updates.
 - **Project rules:** AI development policy, roadmap, contribution guide, issue forms and pull request template.
 
-No public API of the library has been changed, and no file under `src/MediatR` or `src/MediatR.Contracts` other than the two project files and the package readme.
+No public API of the library or of the contracts has been changed, and no file under `src/MediatR` or `src/MediatR.Contracts` other than the two project files and the two package readmes.

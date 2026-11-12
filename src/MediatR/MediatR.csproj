@@ -45,13 +45,29 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- The contracts package published by the original authors; 2.0.1 is under the Apache License 2.0.
-         Whether the fork publishes its own is an open decision: ROADMAP.md, phase 2. -->
-    <PackageReference Include="MediatR.Contracts" Version="[2.0.1, 3.0.0)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- The contracts come from this repository and are published as ForkForward.Mediator.Contracts.
+         In the package this reference becomes a dependency on that package; see the target below. -->
+    <ProjectReference Include="..\MediatR.Contracts\MediatR.Contracts.csproj" />
+  </ItemGroup>
+
+  <!-- Pack turns a project reference into a dependency on "this version or newer". The mediator and its
+       contracts are released together, so the dependency is pinned to exactly the contracts version built
+       here, [2.6.0]: no other contracts version can be resolved for this package.
+       _GetProjectReferenceVersions and _ProjectReferencesWithVersions belong to NuGet's pack targets and are
+       not a public contract; the release workflow checks the resulting dependency before anything is published. -->
+  <Target Name="PinContractsDependency" AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="'%(_ProjectReferencesWithVersions.ProjectVersion)' != ''">
+        <ProjectVersion>[%(_ProjectReferencesWithVersions.ProjectVersion)]</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
 
 </Project>

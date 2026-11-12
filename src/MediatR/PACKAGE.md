@@ -23,7 +23,9 @@ public class PingHandler : IRequestHandler<Ping, string>
 
 ## Moving from MediatR 12
 
-Replace the `MediatR` package reference with `ForkForward.Mediator`. The assembly (`MediatR.dll`), the namespace (`MediatR`), the types, their members and the behaviour are those of MediatR 12.5.0, so no code changes. Do not reference both packages in one project: they contain an assembly with the same name.
+Replace the `MediatR` package reference with `ForkForward.Mediator`, and a `MediatR.Contracts` reference, where a project has one, with `ForkForward.Mediator.Contracts`. The assemblies (`MediatR.dll`, `MediatR.Contracts.dll`), the namespace (`MediatR`), the types, their members and the behaviour are those of MediatR 12.5.0, so no code changes. Do not reference the original and the fork's packages in one project: they contain assemblies with the same names.
+
+The contracts (`IRequest`, `INotification`, `IStreamRequest`, `Unit`) come from `ForkForward.Mediator.Contracts` 2.6.0, which this package depends on exactly.
 
 ## Links
 

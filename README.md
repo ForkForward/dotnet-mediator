@@ -39,7 +39,7 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
-- **No package has been published yet.** The package will be `ForkForward.Mediator` on nuget.org. The plan and the decisions that are still open are in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
+- **No package has been published yet.** The packages will be `ForkForward.Mediator` and `ForkForward.Mediator.Contracts` on nuget.org. The plan and the decisions that are still open are in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
 - The code is MediatR 12.5.0. The assembly is still `MediatR.dll` and the namespace is still `MediatR`; whether they are renamed before the first release is an open decision in the roadmap.
 - The library builds and its 158 tests pass with a current .NET SDK.
 
@@ -98,7 +98,9 @@ Runnable examples for several containers are in [samples](samples).
 
 ### The contracts
 
-`IRequest`, `INotification`, `IStreamRequest` and `Unit` live in a separate assembly, `MediatR.Contracts`. The library takes it from the package `MediatR.Contracts` 2.0.1, which the original authors published under the Apache License 2.0 in 2023. This fork does not publish a contracts package of its own yet; see [ROADMAP.md](ROADMAP.md).
+`IRequest`, `INotification`, `IStreamRequest` and `Unit` live in a separate assembly, `MediatR.Contracts.dll`. This fork builds it from `src/MediatR.Contracts` and publishes it as its own package, `ForkForward.Mediator.Contracts`, version 2.6.0. The code and the public types are those of the original `MediatR.Contracts` 2.0.1. `ForkForward.Mediator` depends on exactly that version, `[2.6.0]`, and on no package of the original project.
+
+Reference `ForkForward.Mediator.Contracts` alone where your requests and notifications live in a separate assembly from their handlers, for example API contracts, gRPC contracts or Blazor.
 
 ## Building
 
@@ -108,7 +110,7 @@ The project builds and is tested on Windows and on Linux. You need a current .NE
 ./Build.ps1
 ```
 
-This builds the solution, runs all tests and packs `ForkForward.Mediator` into `artifacts/`. It runs under PowerShell on both systems.
+This builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts` into `artifacts/`. It runs under PowerShell on both systems.
 
 ## Reporting problems and contributing
 

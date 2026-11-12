@@ -30,7 +30,7 @@ updates:
         update-types: ["version-update:semver-major"]
       # The official MediatR is never a dependency to update: later versions are under another licence.
       - dependency-name: "MediatR"
-      # The contracts package stays at the Apache-2.0 version until the decision in ROADMAP.md, phase 2.
+      # Nor is its contracts package: the fork publishes its own, ForkForward.Mediator.Contracts.
       - dependency-name: "MediatR.Contracts"
 
   - package-ecosystem: github-actions
