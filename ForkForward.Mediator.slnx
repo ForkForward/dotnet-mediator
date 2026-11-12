@@ -14,6 +14,7 @@
     <File Path=".editorconfig" />
     <File Path=".github/workflows/benchmark.yml" />
     <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/docs.yml" />
     <File Path=".github/workflows/release.yml" />
     <File Path="AI_POLICY.md" />
     <File Path="Benchmark.ps1" />
@@ -24,6 +25,7 @@
     <File Path="NOTICE.md" />
     <File Path="README.md" />
     <File Path="ROADMAP.md" />
+    <File Path="zensical.toml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ForkForward.Mediator.Contracts/ForkForward.Mediator.Contracts.csproj" />

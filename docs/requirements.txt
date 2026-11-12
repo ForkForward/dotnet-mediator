@@ -1,0 +1,2 @@
+# The documentation site generator. Dependabot proposes newer versions (see .github/dependabot.yml).
+zensical==0.1.0
