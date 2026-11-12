@@ -26,7 +26,8 @@
     <PackageTags>mediator;request;response;queries;commands;notifications;mediatr;fork;forkforward</PackageTags>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/ForkForward/dotnet-mediator</PackageProjectUrl>
+    <!-- The documentation site; nuget.org shows it as the project website. The source link comes from PublishRepositoryUrl. -->
+    <PackageProjectUrl>https://forkforward.dev/dotnet-mediator/</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
