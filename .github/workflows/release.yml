@@ -58,10 +58,10 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
       with:
-        # The .NET 10 SDK builds everything. The tests target net8.0 and need the .NET 8 runtime.
+        # The .NET 11 SDK builds everything: the library has a net11.0 target. The tests run on .NET 10 and on .NET 11.
         dotnet-version: |
-          8.0.x
           10.0.x
+          11.0.x
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
@@ -69,7 +69,7 @@ jobs:
       id: check
       shell: pwsh
       run: |
-        $packages = @(Get-ChildItem artifacts/*.nupkg)
+        $packages = @(Get-ChildItem artifacts/package/release/*.nupkg)
         if ($packages.Count -eq 0) { throw 'No package was created.' }
 
         # Exactly two packages may be published, the mediator and its contracts, both under the fork's
@@ -107,7 +107,7 @@ jobs:
         $contractsPackage = Read-Package $contracts[0]
 
         # The licence and the attribution notice travel with every copy of the packages.
-        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net6.0/ForkForward.Mediator.dll', 'lib/netstandard2.0/ForkForward.Mediator.dll') {
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net10.0/ForkForward.Mediator.dll', 'lib/net11.0/ForkForward.Mediator.dll', 'lib/netstandard2.0/ForkForward.Mediator.dll') {
           if ($mediatorPackage.Entries -notcontains $required) { throw "$($mediator[0].Name) does not contain $required." }
         }
         foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/netstandard2.0/ForkForward.Mediator.Contracts.dll') {
@@ -137,8 +137,8 @@ jobs:
       with:
         name: packages
         path: |
-          artifacts/*.nupkg
-          artifacts/*.snupkg
+          artifacts/package/release/*.nupkg
+          artifacts/package/release/*.snupkg
         if-no-files-found: error
 
   # The release is compared with the previous one before it is published:

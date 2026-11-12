@@ -249,7 +249,8 @@ if (-not $CompareOnly) {
 # What each side really measures, read from the library next to the benchmark.
 $libraries = @{}
 foreach ($side in $sides.Keys) {
-    $output = Join-Path (Split-Path $sides[$side]) 'bin/Release'
+    $project = [System.IO.Path]::GetFileNameWithoutExtension($sides[$side])
+    $output = "./artifacts/bin/$project/release"
     # ForkForward.Mediator.dll from 12.7.0 on; MediatR.dll for MediatR itself and for 12.6.0-preview.1.
     # The newest one: an earlier build against another baseline may have left its library in the folder.
     $library = Get-ChildItem -Path $output -Recurse -Include 'ForkForward.Mediator.dll', 'MediatR.dll' | Sort-Object LastWriteTime -Descending | Select-Object -First 1

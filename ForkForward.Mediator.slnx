@@ -1,0 +1,37 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/ForkForward.Mediator.Examples.AspNetCore/ForkForward.Mediator.Examples.AspNetCore.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.Autofac/ForkForward.Mediator.Examples.Autofac.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.DryIoc/ForkForward.Mediator.Examples.DryIoc.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.Lamar/ForkForward.Mediator.Examples.Lamar.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.LightInject/ForkForward.Mediator.Examples.LightInject.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.PublishStrategies/ForkForward.Mediator.Examples.PublishStrategies.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.SimpleInjector/ForkForward.Mediator.Examples.SimpleInjector.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples.Stashbox/ForkForward.Mediator.Examples.Stashbox.csproj" />
+    <Project Path="samples/ForkForward.Mediator.Examples/ForkForward.Mediator.Examples.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/benchmark.yml" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/release.yml" />
+    <File Path="AI_POLICY.md" />
+    <File Path="Benchmark.ps1" />
+    <File Path="Build.ps1" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="NOTICE.md" />
+    <File Path="README.md" />
+    <File Path="ROADMAP.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ForkForward.Mediator.Contracts/ForkForward.Mediator.Contracts.csproj" />
+    <Project Path="src/ForkForward.Mediator/ForkForward.Mediator.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/ForkForward.Mediator.Benchmarks.Baseline/ForkForward.Mediator.Benchmarks.Baseline.csproj" />
+    <Project Path="test/ForkForward.Mediator.Benchmarks/ForkForward.Mediator.Benchmarks.csproj" />
+    <Project Path="test/ForkForward.Mediator.Tests/ForkForward.Mediator.Tests.csproj" />
+  </Folder>
+</Solution>

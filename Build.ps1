@@ -22,17 +22,24 @@ function Exec
     }
 }
 
-$artifacts = ".\artifacts"
+# Build output uses the SDK artifacts layout (UseArtifactsOutput in Directory.Build.props):
+#   artifacts/bin, artifacts/obj   compiled projects, kept between runs for incremental builds
+#   artifacts/TestResults          test result files (.trx)
+#   artifacts/package/release      the NuGet packages and their symbols
+# Forward slashes, so that the script also runs under PowerShell on Linux and macOS.
+$testResults = "./artifacts/TestResults"
+$packages = "./artifacts/package/release"
 
-if(Test-Path $artifacts) { Remove-Item $artifacts -Force -Recurse }
-
-exec { & dotnet clean -c Release }
+# Results and packages from an earlier run must not be mistaken for this one's.
+foreach ($path in $testResults, $packages) {
+    if(Test-Path $path) { Remove-Item $path -Force -Recurse }
+}
 
 exec { & dotnet build -c Release }
 
-exec { & dotnet test -c Release --no-build -l trx --verbosity=normal }
+exec { & dotnet test -c Release --no-build --results-directory $testResults -l trx }
 
-exec { & dotnet pack .\src\ForkForward.Mediator.Contracts\ForkForward.Mediator.Contracts.csproj -c Release -o $artifacts --no-build }
+exec { & dotnet pack ./src/ForkForward.Mediator.Contracts/ForkForward.Mediator.Contracts.csproj -c Release --no-build }
 
-exec { & dotnet pack .\src\ForkForward.Mediator\ForkForward.Mediator.csproj -c Release -o $artifacts --no-build }
+exec { & dotnet pack ./src/ForkForward.Mediator/ForkForward.Mediator.csproj -c Release --no-build }
 

@@ -4,7 +4,7 @@
        Authors, Company, Product and Copyright are in the Directory.Build.props at the root. -->
   <PropertyGroup>
     <Description>ForkForward.Mediator is a community fork of MediatR, the simple mediator implementation in .NET created by Jimmy Bogard. It continues the last Apache-2.0-licensed code of MediatR (12.5.0) with its own assembly name, namespace and signing key, ForkForward.Mediator: moving from MediatR 12 is a package reference, a using directive and AddMediator instead of AddMediatR. Independent project: not affiliated with or endorsed by the original authors.</Description>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net10.0;net11.0</TargetFrameworks>
     <!-- The assembly name and the root namespace are the project name, ForkForward.Mediator. -->
     <PackageId>ForkForward.Mediator</PackageId>
   </PropertyGroup>

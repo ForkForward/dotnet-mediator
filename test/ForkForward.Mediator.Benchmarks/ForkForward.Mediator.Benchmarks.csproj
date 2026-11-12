@@ -4,7 +4,7 @@
        ForkForward.Mediator.Benchmarks.Baseline compiles the same sources against the last published package.
        See Benchmark.ps1. -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Benchmarks</RootNamespace>
     <IsPackable>false</IsPackable>
