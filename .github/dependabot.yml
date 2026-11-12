@@ -1,0 +1,43 @@
+# Dependabot: weekly pull requests with newer dependency versions (minor and patch, one grouped
+# pull request per ecosystem) and security fixes from alerts, also grouped into one pull request.
+# Major versions are left out: they are migrations, not updates, and are done by hand.
+#
+# This repository is a fork, and on a fork this file alone does nothing: GitHub runs version
+# updates there only after someone enables them in the repository settings, under
+# Settings > Advanced Security > Dependabot > Dependabot version updates > Enable.
+#
+# Every Dependabot pull request goes through the same checks as any other: CI on Windows and
+# Ubuntu, and the dependency review.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories: ["/src/MediatR", "/src/MediatR.Contracts", "/test/MediatR.Tests", "/test/MediatR.Benchmarks", "/samples/*"]
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 5
+    groups:
+      nuget-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+      nuget-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # The official MediatR is never a dependency to update: later versions are under another licence.
+      - dependency-name: "MediatR"
+      # The contracts package stays at the Apache-2.0 version until the decision in ROADMAP.md, phase 2.
+      - dependency-name: "MediatR.Contracts"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Europe/Warsaw
+    groups:
+      github-actions:
+        patterns: ["*"]

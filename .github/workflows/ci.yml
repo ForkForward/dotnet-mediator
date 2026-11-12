@@ -3,37 +3,46 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-      - master
+      - main
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
       with:
+        # MinVer computes the version from the tags, so it needs the full history.
         fetch-depth: 0
-    - name: Setup dotnet 6.0
-      uses: actions/setup-dotnet@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: '6.0.x'
-    - name: Setup dotnet 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.100'
+        # The .NET 10 SDK builds everything. The tests target net8.0 and need the .NET 8 runtime.
+        dotnet-version: |
+          8.0.x
+          10.0.x
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
-    - name: Push to MyGet
-      env:
-        NUGET_URL: https://www.myget.org/F/mediatr-ci/api/v3/index.json
-        NUGET_API_KEY: ${{ secrets.MYGET_MEDIATR_CI_API_KEY }}
-      run: ./Push.ps1
-      shell: pwsh
     - name: Artifacts
-      uses: actions/upload-artifact@v4
+      if: always()
+      uses: actions/upload-artifact@v7
       with:
-        name: artifacts
-        path: artifacts/**/*
+        name: artifacts-${{ matrix.os }}
+        # The package and its symbols, and the test results.
+        path: |
+          artifacts/**
+          test/**/TestResults/**

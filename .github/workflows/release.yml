@@ -1,46 +1,105 @@
 name: Release
 
+# Builds, tests, packs and publishes ForkForward.Mediator for a version tag such as
+# v12.6.0 or v12.6.0-preview.1.
+#
+# Publishing uses NuGet Trusted Publishing: the publish job exchanges a GitHub OIDC token
+# for a NuGet API key that is valid for one hour, so no NuGet key is stored in this repository.
+# The matching policy on nuget.org names this repository, this workflow file (release.yml)
+# and the environment "release". Until that policy and the NUGET_USER secret exist, the
+# publish job fails at the login step and nothing is published. See ROADMAP.md, phase 2.
+#
+# After the push the job creates the GitHub release for the tag, with the matching section of
+# CHANGELOG.md as its notes and the packages attached.
 on:
   push:
     tags:
-    - '*.*.*'
+    - 'v*.*.*'
+permissions:
+  contents: read
+
 jobs:
   build:
-    strategy:
-      matrix: 
-        os: [ubuntu-latest]
-      fail-fast: false
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
       with:
+        # MinVer computes the version from the tags, so it needs the full history.
         fetch-depth: 0
-    - name: Setup dotnet 6.0
-      uses: actions/setup-dotnet@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: '6.0.x'
-    - name: Setup dotnet 8.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.100'
+        # The .NET 10 SDK builds everything. The tests target net8.0 and need the .NET 8 runtime.
+        dotnet-version: |
+          8.0.x
+          10.0.x
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
-    - name: Push to MyGet
-      env:
-        NUGET_URL: https://www.myget.org/F/mediatr-ci/api/v3/index.json
-        NUGET_API_KEY: ${{ secrets.MYGET_MEDIATR_CI_API_KEY }}
-      run: ./Push.ps1
-      shell: pwsh
-    - name: Push to NuGet
-      env:
-        NUGET_URL: https://api.nuget.org/v3/index.json
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: ./Push.ps1
-      shell: pwsh
-    - name: Artifacts
-      uses: actions/upload-artifact@v4
+    - name: Packages
+      uses: actions/upload-artifact@v7
       with:
-        name: artifacts
-        path: artifacts/**/*
+        name: packages
+        path: |
+          artifacts/*.nupkg
+          artifacts/*.snupkg
+        if-no-files-found: error
+
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # A maintainer decides what is released: add required reviewers to this environment
+    # in the repository settings and the job waits for their approval.
+    environment: release
+    permissions:
+      id-token: write  # lets this job request the GitHub OIDC token that nuget.org trusts
+      contents: write  # creates the GitHub release
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        sparse-checkout: CHANGELOG.md
+        sparse-checkout-cone-mode: false
+    - name: Packages
+      uses: actions/download-artifact@v8
+      with:
+        name: packages
+        path: packages
+    # The API key is valid for one hour, so it is requested right before the push.
+    - name: NuGet login (OIDC to temporary API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        # The nuget.org user name of the person who created the Trusted Publishing policy.
+        # It is not the organization that owns the policy (ForkForward) and not an e-mail address:
+        # nuget.org rejects the login with HTTP 401 for either of those.
+        user: ${{ secrets.NUGET_USER }}
+    # Pushing a .nupkg also pushes the .snupkg next to it to the symbol server.
+    - name: NuGet push
+      run: dotnet nuget push "packages/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    # The notes are the section of CHANGELOG.md whose heading names this version; the whole file when there is none.
+    - name: GitHub release
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        $tag = $env:GITHUB_REF_NAME
+        $version = $tag.TrimStart('v')
+        $lines = Get-Content CHANGELOG.md -Encoding utf8
+        $start = ($lines | Select-String -Pattern "^## \[$([regex]::Escape($version))\]" | Select-Object -First 1).LineNumber
+        if ($start) {
+          $rest = $lines[$start..($lines.Count - 1)]
+          $next = ($rest | Select-String -Pattern '^## ' | Select-Object -First 1).LineNumber
+          $notes = if ($next) { $rest[0..($next - 2)] } else { $rest }
+        }
+        else {
+          $notes = @("See CHANGELOG.md.")
+        }
+        $notes += ''
+        $notes += "Package: https://www.nuget.org/packages/ForkForward.Mediator/$version"
+        Set-Content -Path notes.md -Value $notes -Encoding utf8
+        $prerelease = @()
+        if ($version -match '-') { $prerelease = @('--prerelease') }
+        # --repo: this repository is a fork, and without it gh would pick the original as the default.
+        gh release create $tag --repo $env:GITHUB_REPOSITORY --title "ForkForward.Mediator $version" --notes-file notes.md @prerelease (Get-ChildItem packages/*.nupkg, packages/*.snupkg | ForEach-Object { $_.FullName })

@@ -15,10 +15,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Build.ps1 = Build.ps1
-		BuildContracts.ps1 = BuildContracts.ps1
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		Directory.Build.props = Directory.Build.props
-		Push.ps1 = Push.ps1
+		NOTICE.md = NOTICE.md
+		AI_POLICY.md = AI_POLICY.md
+		ROADMAP.md = ROADMAP.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		CHANGELOG.md = CHANGELOG.md
 		README.md = README.md
 		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
