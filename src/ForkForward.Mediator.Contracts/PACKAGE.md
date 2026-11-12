@@ -11,6 +11,8 @@ It contains only:
 
 Reference it alone where your requests and notifications live in a separate assembly from their handlers, for example API contracts, gRPC contracts or Blazor. `ForkForward.Mediator` depends on it in exactly its own version, so a project that references the mediator does not need it as well. Both packages always have the same version number.
 
+Version 13 targets .NET 10 and .NET 11. For .NET 8, .NET 9, .NET Framework and other .NET Standard 2.0 platforms use version 12.8.
+
 ```csharp
 using ForkForward.Mediator;
 

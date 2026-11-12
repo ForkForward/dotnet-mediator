@@ -26,7 +26,7 @@ By opening a pull request you confirm that you have the right to submit the chan
 
 ## Building
 
-The project builds and is tested on Windows and on Linux; CI runs both. You need the .NET 11 SDK and the .NET 10 runtime. The solution file is `ForkForward.Mediator.slnx`. The library targets `netstandard2.0`, `net10.0` and `net11.0`; the tests run on .NET 10 and on .NET 11; the benchmarks and the samples target `net10.0`.
+The project builds and is tested on Windows and on Linux; CI runs both. You need the .NET 11 SDK and the .NET 10 runtime. The solution file is `ForkForward.Mediator.slnx`. The library targets `net10.0` and `net11.0`; the tests run on both; the benchmarks and the samples target `net10.0`. There is no conditional compilation: the same source builds for both, and the net11.0 assets are compiled with runtime async (`src/Directory.Build.props`).
 
 ```powershell
 ./Build.ps1
@@ -41,12 +41,31 @@ This builds the solution, runs all tests and packs `ForkForward.Mediator` and `F
 | `artifacts/TestResults` | test results (`.trx`) |
 | `artifacts/package/release` | the NuGet packages and their symbols |
 | `artifacts/benchmarks` | the measurements and the report of `Benchmark.ps1` |
+| `artifacts/aot/<framework>` | the program that `AotTest.ps1` publishes with Native AOT |
 
 To run only the tests:
 
 ```powershell
 dotnet test test/ForkForward.Mediator.Tests
 ```
+
+## Native AOT
+
+The library is marked `IsAotCompatible`, so the trimming and AOT analyzers run in every build and their warnings are errors. Code that needs reflection or dynamic code either gets a path that does not, or carries `RequiresUnreferencedCode` / `RequiresDynamicCode` so that applications are told. A suppression needs a justification that says why the code is safe.
+
+`test/ForkForward.Mediator.AotTests` is a console application that registers handlers one by one. It is published with Native AOT and run:
+
+```powershell
+./AotTest.ps1
+```
+
+That needs the platform's native toolchain: the C++ build tools of Visual Studio on Windows, `clang` and `zlib1g-dev` on Linux. Without them, the container image `mcr.microsoft.com/dotnet/sdk:11.0-aot` has everything:
+
+```
+docker run --rm -v "${PWD}:/src" -w /src mcr.microsoft.com/dotnet/sdk:11.0-aot pwsh ./AotTest.ps1
+```
+
+CI runs it on Windows and on Ubuntu, for .NET 10 and for .NET 11. A new feature gets a scenario there, in the list of what works or in the list of what is refused.
 
 ## Performance
 

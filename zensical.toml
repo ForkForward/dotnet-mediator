@@ -39,6 +39,7 @@ nav = [
     "Pipeline-behaviors.md",
     "Exception-handling.md",
     "Dependency-injection.md",
+    "Native-AOT.md",
   ] },
 ]
 

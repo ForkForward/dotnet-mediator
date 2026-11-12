@@ -4,7 +4,19 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET Framework or another .NET Standard 2.0 platform stay on 12.8.
+
+### Breaking
+
+- **No .NET Standard 2.0 asset.** Both packages target `net10.0` and `net11.0` and nothing else. .NET 8 and .NET 9 went out of support on 2026-11-10.
+- `Microsoft.Extensions.DependencyInjection.Abstractions` 10.0.0 instead of 8.0.0 on .NET 10; on .NET 11 it is part of the framework, as before. The packages `IsExternalInit` and `Microsoft.Bcl.AsyncInterfaces` are no longer needed.
+- An application that is trimmed or published with Native AOT now gets the warnings IL2026 and IL3050 where it calls `RegisterServicesFromAssembly`, `RegisterServicesFromAssemblyContaining` or `RegisterServicesFromAssemblies`, and IL2026 for `AddOpenBehaviors` with a list of types. Scanning never worked there; the warnings say so at compile time. Applications that are not trimmed see nothing.
+
 ### Added
+
+- **Native AOT and trimming.** The library is marked `IsAotCompatible`. Handlers can be registered one by one, without reflection: `AddRequestHandler`, `AddNotificationHandler`, `AddStreamRequestHandler`, `AddRequestExceptionHandler` and `AddRequestExceptionAction` on `MediatorServiceConfiguration`. With them `AddMediator` needs no assembly. What works under Native AOT and what is different is on [Native AOT and trimming](docs/source/Native-AOT.md); a test application is published with Native AOT and run on every change.
+- **Runtime async on .NET 11.** The `net11.0` assets are compiled with runtime async: the .NET 11 runtime runs the library's async methods itself, without compiler-generated state machines. The `net10.0` assets are compiled as before. There is one source for both and no conditional compilation.
+- `Send` for a request without a response and `Publish` skip the lookup of the message type when the object is exactly of the type given as the type argument.
 
 - Documentation at [forkforward.dev/dotnet-mediator](https://forkforward.dev/dotnet-mediator/): getting started, requests, notifications, streams, pipeline behaviors, exception handling, dependency injection and the guide Moving from MediatR 12. It was written for this fork from its code; the original project's wiki is not used.
 

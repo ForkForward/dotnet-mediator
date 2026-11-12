@@ -21,8 +21,17 @@ In-process messaging for .NET: requests with one handler, notifications with man
 dotnet add package ForkForward.Mediator
 ```
 
-The package runs on .NET 10 and .NET 11 with assets of their own, and on everything that supports .NET Standard 2.0,
-which includes .NET 8, .NET 9 and .NET Framework 4.6.2 and later.
+!!! note "Version 13 is not released yet"
+
+    These pages describe the code on the `main` branch, which is line 13. The current release on nuget.org is
+    12.8.0. It has everything on these pages except [Native AOT and trimming](Native-AOT.md) and the
+    registration of handlers one by one.
+
+Version 13 runs on .NET 10 and .NET 11, with an asset for each. On .NET 11 it uses the runtime's own async
+support. It also works in applications published with [Native AOT](Native-AOT.md).
+
+Applications on .NET 8, .NET 9 or .NET Framework use version 12.8, which also has a .NET Standard 2.0 asset:
+`dotnet add package ForkForward.Mediator --version 12.8.0`.
 
 ## In one example
 
@@ -54,6 +63,7 @@ public class PingHandler : IRequestHandler<Ping, string>
 - [Pipeline behaviors](Pipeline-behaviors.md): code that runs around every handler, and pre- and post-processors.
 - [Exception handling](Exception-handling.md): turning an exception into a response, or reacting to it.
 - [Dependency injection](Dependency-injection.md): what `AddMediator` registers and every option it takes.
+- [Native AOT and trimming](Native-AOT.md): registering handlers one by one, what works and what is different.
 - [Moving from MediatR 12](Moving-from-MediatR-12.md): package references, namespaces and two renamed identifiers.
 
 ## Examples

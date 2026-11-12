@@ -2,6 +2,17 @@
 
 ForkForward.Mediator is the code of MediatR 12.5.0 under its own names. The types, their members and the behaviour are the same; what differs is what the packages, the assemblies, the namespace and two identifiers are called. Moving a project takes three find-and-replace steps.
 
+## Which version
+
+| Your application runs on | Use |
+|---|---|
+| .NET 10 or .NET 11 | ForkForward.Mediator 13 |
+| .NET 8, .NET 9, .NET Framework 4.6.2 or later, anything else with .NET Standard 2.0 | ForkForward.Mediator 12.8 |
+
+Both have the API of MediatR 12.5.0 under the names below. Version 13 adds registration without reflection for
+[Native AOT](Native-AOT.md) and uses the runtime's async support on .NET 11; it no longer has a .NET Standard 2.0
+asset.
+
 ## 1. Package references
 
 | Remove | Add |

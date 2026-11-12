@@ -23,7 +23,8 @@ Where ForkForward.Mediator is going, and the decisions that are still open. Open
 
 - [x] Dependency review on pull requests: known vulnerabilities and licences of added or updated dependencies
 - [ ] Make the CI build, the Dependency review and the Benchmark verdict (`compare with the last release`) checks required on `main`, next to `origin guard`
-- [x] **Decided (maintainer, 2026-11-12): the library targets `netstandard2.0`, `net10.0` and `net11.0`**, from 12.8.0 on. `net6.0`, which is out of support, is gone. .NET Standard 2.0 stays, so that .NET 8, .NET 9 and .NET Framework keep working; they get that asset. The `net11.0` asset has one dependency fewer: `Microsoft.Extensions.DependencyInjection.Abstractions` is part of the framework from .NET 11 on
+- [x] **Decided (maintainer, 2026-11-12): the library targets `netstandard2.0`, `net10.0` and `net11.0`** in 12.8. `net6.0`, which is out of support, is gone
+- [x] **Decided (maintainer, 2026-11-13): line 13 targets `net10.0` and `net11.0` only**, without .NET Standard 2.0 and without conditional compilation. .NET 8 and .NET 9 went out of support on 2026-11-10; applications on them and on .NET Framework stay on 12.8. The `net11.0` assets are compiled with runtime async, the `net10.0` assets with the usual state machines, from one source
 - [x] Tests on .NET 10 and on .NET 11; benchmarks and samples on `net10.0`; CI builds with the .NET 11 SDK
 - [x] Solution in the `.slnx` format; build output in the artifacts layout
 - [ ] The Windsor sample is not part of the solution and does not compile: it uses `ServiceFactory`, which the original removed in 12.0. Fix it or remove it
@@ -57,6 +58,10 @@ The first preview was published on 2026-11-12: tag `v12.6.0-preview.1`, [`ForkFo
 
 ## Phase 3: beyond the first release
 
+- [x] Native AOT and trimming (line 13): the library is `IsAotCompatible`, handlers can be registered one by one without reflection, and `test/ForkForward.Mediator.AotTests` is published with Native AOT and run in CI on Windows and Ubuntu for .NET 10 and .NET 11. What works and what is different: [Native AOT and trimming](docs/source/Native-AOT.md)
+- [ ] A source generator that writes the one-by-one registrations from the handlers in a project, including behaviors closed for requests without a response and with value-type responses. It removes the two things an AOT application has to do by hand today
+- [ ] Release 13.0.0: a `[13.0.0]` section in `CHANGELOG.md`, the README status, a dry run, the tag `v13.0.0`; then `BaselineVersion` in the baseline benchmark project
+- [ ] Decide how long 12.8 gets fixes now that 13 exists (a `release/12.x` branch, or none)
 - [x] Documentation at [forkforward.dev/dotnet-mediator](https://forkforward.dev/dotnet-mediator/), built with Zensical from `docs/source` and published by the Docs workflow on every change to `main`. The original documentation was a GitHub wiki, which is not part of the forked repository and now describes the later versions, so the pages were written for this fork from its code, its tests and its samples. What they say about the behaviour was checked against the published 12.8.0 package
 - [ ] List the project on [forkforward.dev](https://forkforward.dev) (pull request in ForkForward/forkforward.github.io) and in the organisation profile (ForkForward/.github)
 - [ ] `AutoRegisterRequestProcessors` registers the processors it finds but does not add the behaviors that run them, unless a processor is also added with an `Add...Processor` method (inherited from 12.5.0, documented on the Pipeline behaviors page). Decide whether to fix it; a fix changes behaviour for applications that rely on it

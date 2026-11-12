@@ -10,7 +10,27 @@ services.AddMediator(cfg =>
 });
 ```
 
-At least one assembly is required; without one, `AddMediator` throws an `ArgumentException`.
+`AddMediator` needs at least one assembly to scan or one handler added one by one; with neither it throws an
+`ArgumentException`.
+
+## Without scanning
+
+Every kind of handler can also be registered by naming it, with no reflection involved:
+
+```csharp
+services.AddMediator(cfg =>
+{
+    cfg.AddRequestHandler<GetOrder, OrderDto, GetOrderHandler>();
+    cfg.AddRequestHandler<CancelOrder, CancelOrderHandler>();
+    cfg.AddNotificationHandler<OrderPlaced, ReserveStock>();
+    cfg.AddStreamRequestHandler<GetOrderLines, OrderLine, GetOrderLinesHandler>();
+});
+```
+
+That is what a trimmed application or one published with Native AOT has to do, because scanning cannot work
+there; [Native AOT and trimming](Native-AOT.md) has the whole list and the differences. With a JIT both ways
+can be used together: a request keeps its first handler, and a handler that scanning has already found is not
+registered twice.
 
 ## What it registers
 
