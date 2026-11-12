@@ -1,0 +1,163 @@
+name: Benchmark
+
+# Compares the speed and the allocations of the library in this branch with the last release.
+# Both sides are measured in the same job on the same machine, in alternating rounds, because
+# timings from different runners cannot be compared. See Benchmark.ps1.
+#
+# The measurement runs on two runners, and a benchmark counts as slower only when both of them
+# measured it slower. The two sides are two separately compiled assemblies of the same benchmarks,
+# and on some machines the JIT lays one of them out less favourably: one runner then reports a
+# single benchmark 10 % slower that another runner does not see at all. Allocations do not depend
+# on the machine, so more allocations on either runner count.
+#
+#   pull_request       gate for changes that can affect performance, Dependabot updates included
+#   workflow_dispatch  run it by hand, for example against MediatR 12.5.0
+#   workflow_call      used by the release workflow, so nothing slower than the last release is published
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      baseline-package:
+        description: Package to compare with. Empty means the one set in the baseline project.
+        type: string
+        default: ''
+      baseline-version:
+        description: Version of that package. Empty means the one set in the baseline project.
+        type: string
+        default: ''
+      baseline-namespace:
+        description: Its namespace. ForkForward.Mediator from 12.7.0 on, MediatR for MediatR itself and for 12.6.0-preview.1. Empty means the one set in the baseline project.
+        type: string
+        default: ''
+      max-time-regression-percent:
+        description: Fail when a benchmark is slower than the baseline by more than this.
+        type: string
+        default: '10'
+      rounds:
+        description: How many times each side is measured, on each runner.
+        type: string
+        default: '3'
+  workflow_call:
+    inputs:
+      baseline-package:
+        type: string
+        default: ''
+      baseline-version:
+        type: string
+        default: ''
+      baseline-namespace:
+        type: string
+        default: ''
+      max-time-regression-percent:
+        type: string
+        default: '10'
+      rounds:
+        type: string
+        default: '3'
+permissions:
+  contents: read
+concurrency:
+  # A fixed prefix, not the workflow name: when the release workflow calls this one,
+  # the workflow name is the caller's.
+  group: benchmark-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  measure:
+    name: measure (runner ${{ matrix.runner }})
+    runs-on: ubuntu-latest
+    # A full comparison takes about eight minutes. Without a limit a hung benchmark would run for six hours.
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [1, 2]
+    outputs:
+      measure: ${{ steps.decide.outputs.measure }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        # Full history: MinVer needs the tags, and the next step compares with the base branch.
+        fetch-depth: 0
+    # On a pull request that cannot affect performance nothing is measured; the verdict job reports that.
+    - name: Decide whether to measure
+      id: decide
+      shell: pwsh
+      run: |
+        $measure = 'true'
+        if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+          $changed = git diff --name-only "origin/$($env:GITHUB_BASE_REF)...HEAD"
+          $relevant = @($changed | Where-Object { $_ -match '^(src/|test/ForkForward\.Mediator\.Benchmarks|Directory\.Build\.props$|NuGet\.Config$|Benchmark\.ps1$|\.github/workflows/benchmark\.yml$)' })
+          if ($relevant.Count -eq 0) { $measure = 'false' }
+        }
+        "measure=$measure" >> $env:GITHUB_OUTPUT
+    - name: Setup .NET
+      if: steps.decide.outputs.measure == 'true'
+      uses: actions/setup-dotnet@v6
+      with:
+        # The .NET 10 SDK builds everything. The benchmarks target net8.0 and need the .NET 8 runtime.
+        dotnet-version: |
+          8.0.x
+          10.0.x
+    # This job fails only when the benchmarks did not build or did not run. Slower or more allocations
+    # is recorded in verdict.json and judged together with the other runner's result by the verdict job.
+    - name: Compare with the baseline
+      if: steps.decide.outputs.measure == 'true'
+      shell: pwsh
+      env:
+        BASELINE_PACKAGE: ${{ inputs.baseline-package }}
+        BASELINE_VERSION: ${{ inputs.baseline-version }}
+        BASELINE_NAMESPACE: ${{ inputs.baseline-namespace }}
+        MAX_TIME_REGRESSION_PERCENT: ${{ inputs.max-time-regression-percent }}
+        ROUNDS: ${{ inputs.rounds }}
+      run: |
+        # The inputs are empty on a pull request; the script's own defaults apply then.
+        $arguments = @{}
+        if ($env:BASELINE_PACKAGE) { $arguments.BaselinePackage = $env:BASELINE_PACKAGE }
+        if ($env:BASELINE_VERSION) { $arguments.BaselineVersion = $env:BASELINE_VERSION }
+        if ($env:BASELINE_NAMESPACE) { $arguments.BaselineNamespace = $env:BASELINE_NAMESPACE }
+        if ($env:MAX_TIME_REGRESSION_PERCENT) { $arguments.MaxTimeRegressionPercent = [double]$env:MAX_TIME_REGRESSION_PERCENT }
+        if ($env:ROUNDS) { $arguments.Rounds = [int]$env:ROUNDS }
+        ./Benchmark.ps1 @arguments
+        if ($LASTEXITCODE -eq 3) { exit 3 }
+        exit 0
+    - name: Results
+      if: always() && steps.decide.outputs.measure == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: benchmarks-runner-${{ matrix.runner }}
+        path: artifacts/benchmarks/**
+  # The check to require on main: it always runs and always reports a result.
+  verdict:
+    name: compare with the last release
+    needs: measure
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    - name: Skipped
+      if: needs.measure.outputs.measure != 'true'
+      shell: pwsh
+      run: |
+        if ('${{ needs.measure.result }}' -ne 'success') { Write-Host 'The measurement jobs did not finish.'; exit 1 }
+        '## Benchmark comparison' >> $env:GITHUB_STEP_SUMMARY
+        '' >> $env:GITHUB_STEP_SUMMARY
+        'Skipped: this pull request does not change the library, its dependencies or the benchmarks.' >> $env:GITHUB_STEP_SUMMARY
+    - name: Download the results
+      if: needs.measure.outputs.measure == 'true'
+      uses: actions/download-artifact@v8
+      with:
+        pattern: benchmarks-runner-*
+        path: artifacts/runners
+    - name: Judge both runners together
+      if: needs.measure.outputs.measure == 'true'
+      shell: pwsh
+      run: |
+        $verdicts = @(Get-ChildItem -Path artifacts/runners -Recurse -Filter verdict.json | Sort-Object FullName | ForEach-Object { $_.FullName })
+        if ($verdicts.Count -lt 2) { Write-Host "Only $($verdicts.Count) of 2 runners produced a result."; exit 3 }
+        ./Benchmark.ps1 -MergeVerdicts $verdicts
+        exit $LASTEXITCODE

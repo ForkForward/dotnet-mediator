@@ -4,7 +4,8 @@ name: Release
 # for a version tag such as v12.7.0 or v12.8.0-preview.1. The tag is the version of both packages.
 #
 # Run by hand (Actions > Release > Run workflow) it is a dry run: it builds, tests, packs and checks
-# the package, keeps it as an artifact of the run, and publishes nothing.
+# the packages, compares speed and allocations with the last release, keeps the packages as an artifact
+# of the run, and publishes nothing.
 #
 # Publishing uses NuGet Trusted Publishing: the publish job exchanges a GitHub OIDC token
 # for a NuGet API key that is valid for one hour, so no NuGet key is stored in this repository.
@@ -140,9 +141,14 @@ jobs:
           artifacts/*.snupkg
         if-no-files-found: error
 
+  # The release is compared with the previous one before it is published:
+  # nothing slower, and nothing that allocates more, goes out. See Benchmark.ps1.
+  benchmark:
+    uses: ./.github/workflows/benchmark.yml
+
   publish:
     name: Publish ${{ needs.build.outputs.version }}
-    needs: [build]
+    needs: [build, benchmark]
     # Only a version tag publishes; a run started by hand ends after the build job.
     if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest

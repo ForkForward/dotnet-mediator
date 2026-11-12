@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ForkForward.Mediator.Benchmarks
+namespace Benchmarks
 {
     public class GenericPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : notnull

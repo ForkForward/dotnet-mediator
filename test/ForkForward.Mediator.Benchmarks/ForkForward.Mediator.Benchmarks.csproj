@@ -1,22 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Benchmarks of the library as it is in this repository: the "current" side of the comparison.
+       ForkForward.Mediator.Benchmarks.Baseline compiles the same sources against the last published package.
+       See Benchmark.ps1. -->
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
+    <RootNamespace>Benchmarks</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <PropertyGroup>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <Configuration>Release</Configuration>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.10" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\ForkForward.Mediator\ForkForward.Mediator.csproj" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- The sources do not name the library's namespace: the baseline project compiles them against a published
+         package, whose namespace may differ. Each project supplies its own. -->
+    <Using Include="ForkForward.Mediator" />
+    <Using Include="ForkForward.Mediator.Pipeline" />
+  </ItemGroup>
+
 </Project>
