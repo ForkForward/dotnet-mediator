@@ -12,12 +12,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- One version for both packages, taken from the git tags: a tag v12.6.0 builds 12.6.0, a tag
-         v12.6.0-preview.2 builds 12.6.0-preview.2. Commits after the last tag build a preview, for example
-         12.6.0-preview.2.4 for the fourth commit after v12.6.0-preview.2.
-         The minimum keeps the fork's versions above the original 12.5.0 it was forked from. -->
+    <!-- One version for both packages, taken from the git tags: a tag v12.7.0 builds 12.7.0, a tag
+         v12.8.0-preview.1 builds 12.8.0-preview.1. Commits after the last tag build a preview, for example
+         12.7.1-preview.0.4 for the fourth commit after v12.7.0.
+         The minimum is the fork's first release line. 12.6 is skipped: its only version, 12.6.0-preview.1, was
+         published with the original assembly names. -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>12.6</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>12.7</MinVerMinimumMajorMinor>
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
 

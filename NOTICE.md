@@ -28,7 +28,7 @@ Changes in this fork are written with AI coding tools and automation and are rev
 
 ForkForward is an independent project. It is not affiliated with, sponsored by, or endorsed by Jimmy Bogard, Lucky Penny Software or the MediatR project.
 
-"MediatR" is the name of the original project and belongs to its owners. This fork uses the name only to identify the origin of the code and to describe compatibility. Since version 12.6.0-preview.2 the assemblies (`ForkForward.Mediator.dll`, `ForkForward.Mediator.Contracts.dll`), the namespaces and the signing key are the fork's own, and no public type or member carries the old name: `AddMediatR` became `AddMediator` and `MediatRServiceConfiguration` became `MediatorServiceConfiguration`. The fork is distributed under its own name, `ForkForward.Mediator`, and with its own logo.
+"MediatR" is the name of the original project and belongs to its owners. This fork uses the name only to identify the origin of the code and to describe compatibility. Since version 12.7.0 the assemblies (`ForkForward.Mediator.dll`, `ForkForward.Mediator.Contracts.dll`), the namespaces and the signing key are the fork's own, and no public type or member carries the old name: `AddMediatR` became `AddMediator` and `MediatRServiceConfiguration` became `MediatorServiceConfiguration`. The fork is distributed under its own name, `ForkForward.Mediator`, and with its own logo.
 
 ## Code that must not enter this fork
 

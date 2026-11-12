@@ -1,7 +1,7 @@
 name: Release
 
 # Builds, tests, packs and publishes ForkForward.Mediator and ForkForward.Mediator.Contracts to nuget.org
-# for a version tag such as v12.6.0 or v12.6.0-preview.2. The tag is the version of both packages.
+# for a version tag such as v12.7.0 or v12.8.0-preview.1. The tag is the version of both packages.
 #
 # Run by hand (Actions > Release > Run workflow) it is a dry run: it builds, tests, packs and checks
 # the package, keeps it as an artifact of the run, and publishes nothing.

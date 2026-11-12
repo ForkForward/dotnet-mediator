@@ -26,7 +26,7 @@
 
   <!-- Pack turns a project reference into a dependency on "this version or newer". The mediator and its
        contracts are built and released together with one version, so the dependency is pinned to exactly
-       that version, for example [12.6.0]: no other contracts version can be resolved for this package.
+       that version, for example [12.7.0]: no other contracts version can be resolved for this package.
        _GetProjectReferenceVersions and _ProjectReferencesWithVersions belong to NuGet's pack targets and are
        not a public contract; the release workflow checks the resulting dependency before anything is published. -->
   <Target Name="PinContractsDependency" AfterTargets="_GetProjectReferenceVersions">

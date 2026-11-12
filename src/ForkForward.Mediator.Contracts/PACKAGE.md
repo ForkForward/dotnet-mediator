@@ -22,7 +22,7 @@ public record Pinged : INotification;
 
 Replace the `MediatR.Contracts` package reference with `ForkForward.Mediator.Contracts`, and `using MediatR` with `using ForkForward.Mediator`. The types and their members are the same. Full guide: [Moving from MediatR 12](https://github.com/ForkForward/dotnet-mediator/blob/main/docs/Moving-from-MediatR-12.md).
 
-Version 2.6.0 of this package predates the rename: it contains `MediatR.Contracts.dll` with the namespace `MediatR`. Use 12.6.0-preview.2 or later.
+Version 2.6.0 of this package predates the rename: it contains `MediatR.Contracts.dll` with the namespace `MediatR`. Use 12.7.0 or later.
 
 ## Links
 

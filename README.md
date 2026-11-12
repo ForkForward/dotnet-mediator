@@ -39,12 +39,13 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
-- **A first preview is on nuget.org:** [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator) `12.6.0-preview.1`. It predates the rename described below: it still contains `MediatR.dll` with the namespace `MediatR`. There is no stable release yet. The plan is in [ROADMAP.md](ROADMAP.md); what has changed so far is in [CHANGELOG.md](CHANGELOG.md).
+- The first stable release is `12.7.0`, on nuget.org: [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator), with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) in the same version. What changed in each release is in [CHANGELOG.md](CHANGELOG.md); the plan is in [ROADMAP.md](ROADMAP.md).
 
   ```
-  dotnet add package ForkForward.Mediator --prerelease
+  dotnet add package ForkForward.Mediator
   ```
 
+- Do not use `ForkForward.Mediator` 12.6.0-preview.1 or `ForkForward.Mediator.Contracts` 2.6.0. They were published before the rename described below and still contain `MediatR.dll` and `MediatR.Contracts.dll`. There is no 12.6.0.
 - The code is MediatR 12.5.0 under its own names. The assemblies are `ForkForward.Mediator.dll` and `ForkForward.Mediator.Contracts.dll`, the namespaces start with `ForkForward.Mediator`, and both are signed with the fork's own key. Nothing in the public API carries the old name: `AddMediatR` is `AddMediator` and `MediatRServiceConfiguration` is `MediatorServiceConfiguration`. All other types, their members and the behaviour are those of MediatR 12.5.0. Moving a project is a package reference, a `using` directive and those two names: [Moving from MediatR 12](docs/Moving-from-MediatR-12.md).
 - The library builds and its 158 tests pass with a current .NET SDK.
 
