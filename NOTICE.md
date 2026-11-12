@@ -34,7 +34,7 @@ ForkForward is an independent project. It is not affiliated with, sponsored by, 
 
 Nothing may be copied into this fork from MediatR 13.0.0 or later, or from any commit of the `LuckyPennySoftware/MediatR` repository made after the fork point. That code is under a different licence (Reciprocal Public License 1.5 or a commercial licence).
 
-This repository is a GitHub fork of `LuckyPennySoftware/MediatR`, so GitHub offers a "Sync fork" button. It must not be used: it would merge the later, differently licensed code.
+This repository is a GitHub fork of `LuckyPennySoftware/MediatR`, so GitHub offers a "Sync fork" button. It must not be used: it would merge the later, differently licensed code. A ruleset on the `main` branch rejects it.
 
 ## What the fork has changed
 

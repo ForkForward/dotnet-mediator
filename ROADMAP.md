@@ -5,6 +5,9 @@ Where ForkForward.Mediator is going, and the decisions that are still open. Open
 ## Phase 0: identity and housekeeping
 
 - [x] Repository created as a GitHub fork of `LuckyPennySoftware/MediatR`, with its only branch and its tags at or before `v12.5.0` (commit `8a64581e`), the last release under the Apache License 2.0
+- [x] Ruleset on `main` (2026-11-12): changes only through pull requests, no force pushes, no deletion, no bypass for administrators. GitHub's "Sync fork" is rejected with "Repository rule violations found"; checked against `main` itself
+- [x] `origin guard` job in CI: fails when the history contains a commit made in the original repository after `v12.5.0`
+- [ ] Add `origin guard` to the ruleset as a required status check, once CI has run for the first time
 - [x] State clearly that this is a fork of MediatR, who wrote the original, and under what licence ([README.md](README.md), [NOTICE.md](NOTICE.md))
 - [x] Own name and logo; remove things that applied only to the original project (its package feeds, badges and push scripts)
 - [x] Rules for AI-assisted development ([AI_POLICY.md](AI_POLICY.md))
@@ -19,7 +22,7 @@ Where ForkForward.Mediator is going, and the decisions that are still open. Open
 ## Phase 1: keep it building
 
 - [x] Dependency review on pull requests: known vulnerabilities and licences of added or updated dependencies
-- [ ] Make the CI and Dependency review checks required on `main`
+- [ ] Make the CI build and Dependency review checks required on `main`, next to `origin guard`
 - [ ] **Decision needed: which .NET versions the library targets.** Today `netstandard2.0` and `net6.0`, as in MediatR 12.5.0. .NET 6 is out of support and the SDK warns about it (`NETSDK1138`)
 - [ ] Tests, benchmarks and samples on a supported .NET version (today the tests target `net8.0`, the benchmarks and one sample `net6.0`)
 - [ ] Performance gate: compare speed and allocations with the last release on pull requests and before publishing, as `Benchmark.ps1` does in dotnet-mapper. The benchmarks in `test/MediatR.Benchmarks` are the starting point

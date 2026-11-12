@@ -14,6 +14,29 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  # Nothing the original repository committed after the fork point may enter this one
+  # (AI_POLICY.md, section 4). A ruleset on main already rejects GitHub's "Sync fork";
+  # this job catches the other route, a pull request that merges the original's branches.
+  # It cannot see code that was copied by hand.
+  origin:
+    name: origin guard
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - name: No commit made in the original repository after v12.5.0
+      shell: bash
+      run: |
+        # The first commit made in LuckyPennySoftware/MediatR after v12.5.0 (8a64581e).
+        # Every later commit on its main and release branches descends from it.
+        first_after_fork_point=3f5c3eca8db07e3791f638243bbb879ef847c09e
+        if git rev-list HEAD | grep -q "^${first_after_fork_point}$"; then
+          echo "::error::This history contains commits made in the original MediatR repository after v12.5.0. They are under a different licence and must not be merged. See AI_POLICY.md, section 4."
+          exit 1
+        fi
+        echo "No commit made in the original repository after v12.5.0 is in this history."
   build:
     name: build (${{ matrix.os }})
     strategy:

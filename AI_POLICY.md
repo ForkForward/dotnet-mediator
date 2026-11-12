@@ -34,7 +34,7 @@ This is the rule that protects the project and its users. It has no exceptions.
 - The baseline is the Apache-2.0-licensed MediatR code at commit `8a64581e`, tag `v12.5.0` (see [NOTICE.md](NOTICE.md)).
 - **Nothing is copied from MediatR 13.0.0 or later, or from any commit made to the `LuckyPennySoftware/MediatR` repository after that one.** Those are under a different licence. This covers code, tests, documentation and commit messages.
 - Do not give that code to an AI tool as context, and do not ask a tool to reproduce or port it.
-- **Never use GitHub's "Sync fork" button, and never fetch or merge from `LuckyPennySoftware/MediatR`.** This repository is a GitHub fork of it, so GitHub offers to bring in its newer commits. Those commits are the differently licensed code.
+- **Never use GitHub's "Sync fork" button, and never fetch or merge from `LuckyPennySoftware/MediatR`.** This repository is a GitHub fork of it, so GitHub offers to bring in its newer commits. Those commits are the differently licensed code. Two things enforce this: a ruleset on `main` accepts changes only through pull requests, with no exceptions for administrators, so "Sync fork" is rejected; and the `origin guard` job in CI fails a pull request whose history contains a commit made in the original repository after `v12.5.0`.
 - If the official MediatR fixes a bug that also exists here, the fix in this fork is written independently, starting from the bug report or a reproduction.
 - Third-party code may be added only under a licence compatible with the Apache License 2.0, with its notice kept.
 
