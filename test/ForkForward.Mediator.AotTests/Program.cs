@@ -1,6 +1,9 @@
 // What the mediator does when it is published with Native AOT: no JIT, and no code for a generic instantiation
 // that the compiler has not seen. Every handler is registered one by one; nothing scans an assembly.
 // The program prints one line per scenario and exits with the number of failures.
+//
+// The same program also runs with a JIT (dotnet run, or published with PublishTrimmed instead of PublishAot).
+// A few scenarios have another right answer there, because a JIT can create code on demand; "aot" below picks it.
 using System.Runtime.CompilerServices;
 using ForkForward.Mediator;
 using ForkForward.Mediator.NotificationPublishers;
@@ -47,11 +50,12 @@ async Task Refused<TException>(string name, string messagePart, Func<Task> run) 
     }
 }
 
-(IServiceProvider Provider, Log Log) Build(Action<MediatorServiceConfiguration>? configure = null)
+(IServiceProvider Provider, Log Log) Build(Action<MediatorServiceConfiguration>? configure = null, Action<IServiceCollection>? register = null)
 {
     var log = new Log();
     var services = new ServiceCollection();
     services.AddSingleton(log);
+    register?.Invoke(services);
     services.AddMediator(cfg =>
     {
         cfg.AddRequestHandler<Ping, string, PingHandler>();
@@ -72,7 +76,10 @@ async Task Refused<TException>(string name, string messagePart, Func<Task> run) 
 
 IMediator Mediator(Action<MediatorServiceConfiguration>? configure = null) => Build(configure).Provider.GetRequiredService<IMediator>();
 
-Console.WriteLine($".NET {Environment.Version}, dynamic code supported: {RuntimeFeature.IsDynamicCodeSupported}");
+// False under Native AOT. Also false under dotnet run and dotnet test for a project with PublishAot: the SDK
+// switches dynamic code off there, so that the application behaves in development as it will when published.
+var aot = !RuntimeFeature.IsDynamicCodeSupported;
+Console.WriteLine($".NET {Environment.Version}; dynamic code {(aot ? "not supported" : "supported")}; compiled {(RuntimeFeature.IsDynamicCodeCompiled ? "by a JIT" : "ahead of time")}");
 
 // ---------------------------------------------------------------- requests
 await Expect("Send, reference-type response", "Ping Pong", async () => await Mediator().Send(new Ping("Ping")));
@@ -86,15 +93,41 @@ await Expect("ISender and IPublisher are the mediator", "True", () =>
     var mediator = provider.GetRequiredService<IMediator>();
     return Task.FromResult((mediator is Mediator && provider.GetRequiredService<ISender>() is Mediator && provider.GetRequiredService<IPublisher>() is Mediator).ToString());
 });
-await Refused<InvalidOperationException>("a request that was never registered, sent with its type known only at run time", "was not registered",
+// Under Native AOT the mediator refuses before it looks for a handler; with a JIT the container reports that there is none.
+await Refused<InvalidOperationException>("a request that was never registered, sent with its type known only at run time", aot ? "was not registered" : "No service for type",
     async () => await Mediator().Send((object) new Unregistered()));
+await Expect("a request without a response whose handler was put into the container directly", "handler", async () =>
+{
+    var (p, log) = Build(register: services => services.AddTransient<IRequestHandler<Direct>, DirectHandler>());
+    await p.GetRequiredService<IMediator>().Send(new Direct());
+    return log.Text;
+});
 
 // ---------------------------------------------------------------- notifications
 await Expect("Publish, two handlers", "pinged 1 > pinged 2", async () => { var (p, log) = Build(); await p.GetRequiredService<IMediator>().Publish(new Pinged()); return log.Text; });
 await Expect("Publish, a notification without handlers", "", async () => { var (p, log) = Build(); await p.GetRequiredService<IMediator>().Publish(new Lonely()); return log.Text; });
 await Expect("Publish(object), registered notification", "pinged 1 > pinged 2", async () => { var (p, log) = Build(); await p.GetRequiredService<IMediator>().Publish((object) new Pinged()); return log.Text; });
-await Refused<InvalidOperationException>("Publish(object), a notification that was never registered", "was not registered",
-    async () => await Mediator().Publish((object) new Lonely()));
+if (aot)
+{
+    await Refused<InvalidOperationException>("Publish(object), a notification that was never registered", "was not registered",
+        async () => await Mediator().Publish((object) new Lonely()));
+}
+else
+{
+    await Expect("Publish(object), a notification that was never registered", "", async () => { var (p, log) = Build(); await p.GetRequiredService<IMediator>().Publish((object) new Lonely()); return log.Text; });
+}
+await Expect("a notification handler that was put into the container directly", "direct listener", async () =>
+{
+    var (p, log) = Build(register: services => services.AddTransient<INotificationHandler<DirectNote>, DirectListener>());
+    await p.GetRequiredService<IMediator>().Publish(new DirectNote());
+    return log.Text;
+});
+await Expect("a mediator class of your own", "custom mediator > pinged 1 > pinged 2", async () =>
+{
+    var (p, log) = Build(cfg => cfg.MediatorImplementationType = typeof(LoggingMediator));
+    await p.GetRequiredService<IMediator>().Publish(new Pinged());
+    return log.Text;
+});
 await Expect("ForeachAwaitPublisher stops at the first failing handler", "InvalidOperationException; ", async () =>
 {
     var (p, log) = Build();
@@ -156,10 +189,28 @@ await Expect("open behavior, reference-type response", "outer in > handler > out
 });
 // The container cannot close an open generic type over a value type under Native AOT, and says so.
 // Documented on the Native AOT page: register such behaviors closed.
-await Refused<InvalidOperationException>("open behavior, value-type response", "ValueType",
-    async () => await Mediator(cfg => cfg.AddOpenBehavior(typeof(Outer<,>))).Send(new Add(2, 3)));
-await Refused<InvalidOperationException>("open behavior, request without a response", "ValueType",
-    async () => await Mediator(cfg => cfg.AddOpenBehavior(typeof(Outer<,>))).Send(new Ring()));
+if (aot)
+{
+    await Refused<InvalidOperationException>("open behavior, value-type response", "ValueType",
+        async () => await Mediator(cfg => cfg.AddOpenBehavior(typeof(Outer<,>))).Send(new Add(2, 3)));
+    await Refused<InvalidOperationException>("open behavior, request without a response", "ValueType",
+        async () => await Mediator(cfg => cfg.AddOpenBehavior(typeof(Outer<,>))).Send(new Ring()));
+}
+else
+{
+    await Expect("open behavior, value-type response", "outer in > handler > outer out", async () =>
+    {
+        var (p, log) = Build(cfg => cfg.AddOpenBehavior(typeof(Outer<,>)));
+        await p.GetRequiredService<IMediator>().Send(new Add(2, 3));
+        return log.Text;
+    });
+    await Expect("open behavior, request without a response", "outer in > handler > outer out", async () =>
+    {
+        var (p, log) = Build(cfg => cfg.AddOpenBehavior(typeof(Outer<,>)));
+        await p.GetRequiredService<IMediator>().Send(new Ring());
+        return log.Text;
+    });
+}
 
 // ---------------------------------------------------------------- pre- and post-processors
 await Expect("open pre- and post-processor, reference-type response", "pre > handler > post", async () =>
@@ -273,6 +324,25 @@ public class RingHandler(Log log) : IRequestHandler<Ring>
 }
 
 public record Unregistered : IRequest<string>;
+
+public record Direct : IRequest;
+public class DirectHandler(Log log) : IRequestHandler<Direct>
+{
+    public Task Handle(Direct request, CancellationToken cancellationToken) { log.Add("handler"); return Task.CompletedTask; }
+}
+public record DirectNote : INotification;
+public class DirectListener(Log log) : INotificationHandler<DirectNote>
+{
+    public Task Handle(DirectNote notification, CancellationToken cancellationToken) { log.Add("direct listener"); return Task.CompletedTask; }
+}
+public class LoggingMediator(IServiceProvider serviceProvider, INotificationPublisher publisher, Log log) : Mediator(serviceProvider, publisher)
+{
+    protected override Task PublishCore(IEnumerable<NotificationHandlerExecutor> handlerExecutors, INotification notification, CancellationToken cancellationToken)
+    {
+        log.Add("custom mediator");
+        return base.PublishCore(handlerExecutors, notification, cancellationToken);
+    }
+}
 
 public record Pinged : INotification;
 public class FirstPingedHandler(Log log) : INotificationHandler<Pinged>
