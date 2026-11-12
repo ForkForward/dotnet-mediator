@@ -45,13 +45,13 @@ The first preview was published on 2026-11-12: tag `v12.6.0-preview.1`, [`ForkFo
    - [x] On nuget.org, a Trusted Publishing policy owned by the `ForkForward` organization: repository owner `ForkForward`, repository `dotnet-mediator`, workflow file `release.yml`, and no environment, so that it covers any environment the workflow uses.
    - [x] The repository secret `NUGET_USER` is set (by the maintainer, 2026-11-12). It has to be the nuget.org user name of the person who creates that policy, not the organization and not an e-mail address.
    - [x] The first preview was published before decisions 1 to 3 were taken (maintainer, 2026-11-12). It and `ForkForward.Mediator.Contracts` 2.6.0 carry the original assembly names.
-   - [ ] On nuget.org, unlist `ForkForward.Mediator` 12.6.0-preview.1 and `ForkForward.Mediator.Contracts` 2.6.0 once 12.7.0 is out, so that nobody picks the versions with the original names (only an owner of the packages can do this; a published version cannot be deleted or replaced).
+   - [x] On nuget.org, `ForkForward.Mediator` 12.6.0-preview.1 and `ForkForward.Mediator.Contracts` 2.6.0 are unlisted (maintainer, 2026-11-12), so that nobody picks the versions with the original names. They can still be restored by projects that name them exactly; a published version cannot be deleted or replaced.
    - [x] First deploy: dry run of the release workflow on `main`, then the tag `v12.6.0-preview.1`. The published package was then installed from nuget.org into a new .NET 8 application and used there.
 
    Release steps for the next version: merge what goes in; start the Release workflow by hand on `main` for a dry run; push the tag `v<version>` on `main`. Both packages are published with that version.
 6. [x] NuGet-specific readmes (`src/ForkForward.Mediator/PACKAGE.md`, `src/ForkForward.Mediator.Contracts/PACKAGE.md`) and `CHANGELOG.md`, linked from the package as release notes.
 7. [x] The guide [Moving from MediatR 12](docs/Moving-from-MediatR-12.md).
-8. [ ] `12.7.0`: the first stable release and the first version with the fork's own names. Its section is in `CHANGELOG.md`; it is published by the tag `v12.7.0` on `main`, after a dry run of the release workflow.
+8. [x] `12.7.0` released on 2026-11-12, the first stable release and the first version with the fork's own names: tag `v12.7.0`, [`ForkForward.Mediator` 12.7.0](https://www.nuget.org/packages/ForkForward.Mediator/12.7.0) and [`ForkForward.Mediator.Contracts` 12.7.0](https://www.nuget.org/packages/ForkForward.Mediator.Contracts/12.7.0) on nuget.org, [GitHub release](https://github.com/ForkForward/dotnet-mediator/releases/tag/v12.7.0) created by the workflow. The published assemblies carry the public key token `fe080643cbba1f62`; `dotnet add package ForkForward.Mediator`, without `--prerelease`, installs it.
 
 ## Phase 3: beyond the first release
 
