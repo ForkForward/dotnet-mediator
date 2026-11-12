@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Official MediatR
+    url: https://github.com/LuckyPennySoftware/MediatR
+    about: ForkForward.Mediator is an independent fork. For the official MediatR, its newer versions and commercial support, go here.
+  - name: How do I use the mediator?
+    url: https://stackoverflow.com/questions/tagged/mediatr
+    about: Usage questions are best asked on Stack Overflow. The API of this fork is the API of MediatR 12.

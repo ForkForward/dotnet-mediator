@@ -2,29 +2,43 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <Authors>Jimmy Bogard</Authors>
-    <Description>Contracts package for requests, responses, and notifications</Description>
-    <Copyright>Copyright Jimmy Bogard</Copyright>
+    <!-- Authors, Company, Product and Copyright come from Directory.Build.props. -->
+    <Description>ForkForward.Mediator.Contracts is the contracts package of ForkForward.Mediator, a community fork of MediatR: the request, response and notification contracts (IRequest, INotification, IStreamRequest, Unit) of MediatR.Contracts 2.0.1, without the mediator itself. Independent project: not affiliated with or endorsed by the original authors.</Description>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Features>strict</Features>
-    <PackageTags>mediator;request;response;queries;commands;notifications</PackageTags>
+    <!-- The package has the fork's own name: the id MediatR.Contracts belongs to the original authors.
+         The assembly name (MediatR.Contracts.dll), the namespace and the signing key are still the original ones;
+         see ROADMAP.md, phase 2. -->
+    <PackageId>ForkForward.Mediator.Contracts</PackageId>
+    <PackageTags>mediator;request;response;queries;commands;notifications;mediatr;fork;forkforward</PackageTags>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\MediatR.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageIcon>gradient_128x128.png</PackageIcon>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/ForkForward/dotnet-mediator</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Deterministic>true</Deterministic>
-    <Version>2.0.1</Version>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <!-- The contracts have their own version, set here and not taken from the git tags: they change far less
+         often than the mediator. 2.6.0 is the fork's first, above the original 2.0.1. ForkForward.Mediator
+         depends on exactly this version, so change it only together with a release of both packages. -->
+    <Version>2.6.0</Version>
     <RootNamespace>MediatR</RootNamespace>
 
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\assets\logo\gradient_128x128.png" Pack="true" PackagePath="" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" Visible="False" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="" />
+    <!-- The licence and the attribution notice travel with every copy of the package. -->
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" Visible="False" />
+    <None Include="..\..\NOTICE.md" Pack="true" PackagePath="" Visible="False" />
   </ItemGroup>
 
   <ItemGroup>
