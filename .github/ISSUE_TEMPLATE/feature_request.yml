@@ -1,0 +1,31 @@
+name: Feature or maintenance request
+description: Support for a new .NET version, a dependency update, or a new capability
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ForkForward.Mediator exists to keep the Apache-2.0-licensed MediatR code working on current .NET.
+        Maintenance requests come first. New features are considered when they do not break compatibility with MediatR 12.5.0.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you need?
+      description: Describe the problem, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe it in your own words. Do not paste code from MediatR releases newer than 12.5.0; it cannot be used here.
+  - type: dropdown
+    id: compatibility
+    attributes:
+      label: Would this change the public API or existing behaviour?
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
+    validations:
+      required: true

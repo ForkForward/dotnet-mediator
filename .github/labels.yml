@@ -1,0 +1,39 @@
+# Label set shared by all ForkForward repositories.
+# GitHub does not read this file by itself. Apply it with:
+#   gh label create "<name>" --color <color> --description "<description>" --force
+- name: bug
+  color: d73a4a
+  description: Something does not work
+- name: regression
+  color: b60205
+  description: Worked in the original project at the fork point, fails here
+- name: enhancement
+  color: a2eeef
+  description: New capability
+- name: maintenance
+  color: c5def5
+  description: Keeping up with the platform, SDKs, runtimes and tooling
+- name: dependencies
+  color: 0366d6
+  description: Dependency update
+- name: api-change
+  color: e99695
+  description: Changes the public API
+- name: licence
+  color: 5319e7
+  description: Origin of code, attribution, licence or trademark question
+- name: ci
+  color: ededed
+  description: Build and continuous integration
+- name: documentation
+  color: 0075ca
+  description: Documentation
+- name: needs-reproduction
+  color: fbca04
+  description: Cannot be worked on until there is a reproduction or a failing test
+- name: needs-decision
+  color: d876e3
+  description: Waiting for a maintainer decision
+- name: good first issue
+  color: 7057ff
+  description: Small and well described

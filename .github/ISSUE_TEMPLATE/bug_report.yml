@@ -1,0 +1,63 @@
+name: Bug report
+description: Something in ForkForward.Mediator does not work, or behaves differently from MediatR 12.5.0
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the issue tracker of **ForkForward.Mediator**, a community fork of MediatR.
+        For the official MediatR, go to [LuckyPennySoftware/MediatR](https://github.com/LuckyPennySoftware/MediatR) instead.
+  - type: textarea
+    id: types
+    attributes:
+      label: Request or notification types and their handlers
+      description: Include behaviors, pre/post processors and exception handlers if they take part.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: registration
+    attributes:
+      label: Registration
+      description: The `AddMediatR` call, or how the services are registered in another container.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The call to `Send`, `Publish` or `CreateStream`. A failing test is ideal.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the exception message and stack trace if there is one.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The ForkForward.Mediator version or commit, the .NET version, and the container if it is not Microsoft.Extensions.DependencyInjection.
+    validations:
+      required: true
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Did this work with MediatR 12.5.0?
+      options:
+        - "Yes, it worked there and fails here"
+        - "No, it fails there too"
+        - "I have not checked"
+    validations:
+      required: true
