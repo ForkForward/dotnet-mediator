@@ -1,13 +1,20 @@
 name: Release
 
-# Builds, tests, packs and publishes ForkForward.Mediator for a version tag such as
+# Builds, tests, packs and publishes ForkForward.Mediator to nuget.org for a version tag such as
 # v12.6.0 or v12.6.0-preview.1.
+#
+# Run by hand (Actions > Release > Run workflow) it is a dry run: it builds, tests, packs and checks
+# the package, keeps it as an artifact of the run, and publishes nothing.
 #
 # Publishing uses NuGet Trusted Publishing: the publish job exchanges a GitHub OIDC token
 # for a NuGet API key that is valid for one hour, so no NuGet key is stored in this repository.
-# The matching policy on nuget.org names this repository, this workflow file (release.yml)
-# and the environment "release". Until that policy and the NUGET_USER secret exist, the
-# publish job fails at the login step and nothing is published. See ROADMAP.md, phase 2.
+# It needs, once, outside this repository:
+# - on nuget.org, a Trusted Publishing policy owned by the ForkForward organization for the repository
+#   ForkForward/dotnet-mediator, the workflow file release.yml and the environment "release";
+# - the repository secret NUGET_USER: the nuget.org user name of the person who created that policy;
+# - the environment "release" in this repository. With required reviewers on it, the publish job
+#   waits for a maintainer's approval.
+# Until the policy and the secret exist, the publish job fails at the login step and nothing is published.
 #
 # After the push the job creates the GitHub release for the tag, with the matching section of
 # CHANGELOG.md as its notes and the packages attached.
@@ -15,18 +22,36 @@ on:
   push:
     tags:
     - 'v*.*.*'
+  workflow_dispatch:
 permissions:
   contents: read
+
+# One run per tag at a time; a second run waits instead of cancelling a publish halfway.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
     steps:
     - name: Checkout
       uses: actions/checkout@v7
       with:
         # MinVer computes the version from the tags, so it needs the full history.
         fetch-depth: 0
+    # The same rule as the "origin guard" job in ci.yml: nothing that the original repository
+    # committed after v12.5.0 is published from here. See AI_POLICY.md, section 4.
+    - name: No commit made in the original repository after v12.5.0
+      shell: bash
+      run: |
+        first_after_fork_point=3f5c3eca8db07e3791f638243bbb879ef847c09e
+        if git rev-list HEAD | grep -q "^${first_after_fork_point}$"; then
+          echo "::error::This history contains commits made in the original MediatR repository after v12.5.0. They are under a different licence and must not be published."
+          exit 1
+        fi
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
       with:
@@ -37,6 +62,36 @@ jobs:
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
+    - name: Check the package
+      id: check
+      shell: pwsh
+      run: |
+        $packages = @(Get-ChildItem artifacts/*.nupkg)
+        if ($packages.Count -eq 0) { throw 'No package was created.' }
+
+        # Only ForkForward.Mediator may be published: the MediatR package ids belong to the original authors.
+        if ($packages.Count -ne 1 -or $packages[0].Name -notmatch '^ForkForward\.Mediator\.(\d+\.\d+\.\d+.*)\.nupkg$') {
+          throw "Expected exactly one package, ForkForward.Mediator; found: $($packages.Name -join ', ')"
+        }
+        $version = $Matches[1]
+
+        if ($env:GITHUB_REF_TYPE -eq 'tag') {
+          # A release is published with exactly the version of its tag.
+          $expected = $env:GITHUB_REF_NAME.Substring(1)
+          if ($version -ne $expected) { throw "The tag $env:GITHUB_REF_NAME builds $version, not $expected." }
+        }
+
+        # The licence and the attribution notice travel with every copy of the package.
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $zip = [IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
+        try { $entries = @($zip.Entries.FullName) } finally { $zip.Dispose() }
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net6.0/MediatR.dll', 'lib/netstandard2.0/MediatR.dll') {
+          if ($entries -notcontains $required) { throw "The package does not contain $required." }
+        }
+
+        "version=$version" >> $env:GITHUB_OUTPUT
+        "Version **$version**: $($packages[0].Name)" >> $env:GITHUB_STEP_SUMMARY
+        if ($env:GITHUB_REF_TYPE -ne 'tag') { "Dry run: nothing is published." >> $env:GITHUB_STEP_SUMMARY }
     - name: Packages
       uses: actions/upload-artifact@v7
       with:
@@ -47,7 +102,10 @@ jobs:
         if-no-files-found: error
 
   publish:
+    name: Publish ${{ needs.build.outputs.version }}
     needs: [build]
+    # Only a version tag publishes; a run started by hand ends after the build job.
+    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     # A maintainer decides what is released: add required reviewers to this environment
     # in the repository settings and the job waits for their approval.
@@ -78,28 +136,32 @@ jobs:
     # Pushing a .nupkg also pushes the .snupkg next to it to the symbol server.
     - name: NuGet push
       run: dotnet nuget push "packages/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-    # The notes are the section of CHANGELOG.md whose heading names this version; the whole file when there is none.
+    # The notes are the section of CHANGELOG.md whose heading names this version. A preview has no
+    # section of its own: its notes are the Unreleased section.
     - name: GitHub release
       shell: pwsh
       env:
         GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ needs.build.outputs.version }}
       run: |
         $tag = $env:GITHUB_REF_NAME
-        $version = $tag.TrimStart('v')
+        $version = $env:VERSION
         $lines = Get-Content CHANGELOG.md -Encoding utf8
-        $start = ($lines | Select-String -Pattern "^## \[$([regex]::Escape($version))\]" | Select-Object -First 1).LineNumber
-        if ($start) {
-          $rest = $lines[$start..($lines.Count - 1)]
-          $next = ($rest | Select-String -Pattern '^## ' | Select-Object -First 1).LineNumber
-          $notes = if ($next) { $rest[0..($next - 2)] } else { $rest }
+        $notes = $null
+        foreach ($heading in $version, 'Unreleased') {
+          $start = ($lines | Select-String -Pattern "^## \[$([regex]::Escape($heading))\]" | Select-Object -First 1).LineNumber
+          if ($start) {
+            $rest = $lines[$start..($lines.Count - 1)]
+            $next = ($rest | Select-String -Pattern '^(## |\[[^\]]+\]: )' | Select-Object -First 1).LineNumber
+            $notes = if ($next) { $rest[0..($next - 2)] } else { $rest }
+            break
+          }
         }
-        else {
-          $notes = @("See CHANGELOG.md.")
-        }
+        if (-not $notes) { $notes = @("See CHANGELOG.md.") }
         $notes += ''
         $notes += "Package: https://www.nuget.org/packages/ForkForward.Mediator/$version"
         Set-Content -Path notes.md -Value $notes -Encoding utf8
         $prerelease = @()
         if ($version -match '-') { $prerelease = @('--prerelease') }
-        # --repo: this repository is a fork, and without it gh would pick the original as the default.
+        # --repo: this repository is a fork, and without it gh could pick the original as the default.
         gh release create $tag --repo $env:GITHUB_REPOSITORY --title "ForkForward.Mediator $version" --notes-file notes.md @prerelease (Get-ChildItem packages/*.nupkg, packages/*.snupkg | ForEach-Object { $_.FullName })

@@ -4,7 +4,7 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
-ForkForward.Mediator starts from MediatR 12.5.0 (commit `8a64581e`, 2025-03-24), the last release under the Apache License 2.0. Nothing has been published yet. There are no changes to the library's code or behaviour.
+ForkForward.Mediator starts from MediatR 12.5.0 (commit `8a64581e`, 2025-03-24), the last release under the Apache License 2.0. There are no changes to the library's code or behaviour.
 
 ### Changed
 
