@@ -20,12 +20,13 @@ public record Pinged : INotification;
 
 ## Moving from MediatR.Contracts
 
-Replace the `MediatR.Contracts` package reference with `ForkForward.Mediator.Contracts`, and `using MediatR` with `using ForkForward.Mediator`. The types and their members are the same. Full guide: [Moving from MediatR 12](https://github.com/ForkForward/dotnet-mediator/blob/main/docs/Moving-from-MediatR-12.md).
+Replace the `MediatR.Contracts` package reference with `ForkForward.Mediator.Contracts`, and `using MediatR` with `using ForkForward.Mediator`. The types and their members are the same. Full guide: [Moving from MediatR 12](https://forkforward.dev/dotnet-mediator/Moving-from-MediatR-12/).
 
 Version 2.6.0 of this package predates the rename: it contains `MediatR.Contracts.dll` with the namespace `MediatR`. Use 12.7.0 or later.
 
 ## Links
 
+- Documentation: https://forkforward.dev/dotnet-mediator/
 - Source: https://github.com/ForkForward/dotnet-mediator
 - Changelog: https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md
 - Licence: Apache License 2.0. Copyright Jimmy Bogard and MediatR contributors; modifications copyright 2026 ForkForward contributors. See NOTICE.md in the package.

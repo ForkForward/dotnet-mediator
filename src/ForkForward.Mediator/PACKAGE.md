@@ -27,12 +27,13 @@ public class PingHandler : IRequestHandler<Ping, string>
 2. Replace `using MediatR` with `using ForkForward.Mediator` (same for `MediatR.Pipeline`, `MediatR.NotificationPublishers`, and so on).
 3. Replace `AddMediatR` with `AddMediator`, and `MediatRServiceConfiguration` with `MediatorServiceConfiguration`.
 
-That is all: the other types, their members and the behaviour are those of MediatR 12.5.0. Full guide: [Moving from MediatR 12](https://github.com/ForkForward/dotnet-mediator/blob/main/docs/Moving-from-MediatR-12.md).
+That is all: the other types, their members and the behaviour are those of MediatR 12.5.0. Full guide: [Moving from MediatR 12](https://forkforward.dev/dotnet-mediator/Moving-from-MediatR-12/).
 
 The contracts (`IRequest`, `INotification`, `IStreamRequest`, `Unit`) come from `ForkForward.Mediator.Contracts`, which this package depends on in exactly its own version.
 
 ## Links
 
+- Documentation: https://forkforward.dev/dotnet-mediator/
 - Source: https://github.com/ForkForward/dotnet-mediator
 - Changelog: https://github.com/ForkForward/dotnet-mediator/blob/main/CHANGELOG.md
 - Licence: Apache License 2.0. Copyright Jimmy Bogard and MediatR contributors; modifications copyright 2026 ForkForward contributors. See NOTICE.md in the package.
