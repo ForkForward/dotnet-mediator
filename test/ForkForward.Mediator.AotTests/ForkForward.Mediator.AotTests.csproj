@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A console application that is published with Native AOT and then run: the proof that the library works
+       without a JIT and without reflection over types the compiler cannot see. CI publishes and runs it on
+       Linux and on Windows, for .NET 10 and for .NET 11; see .github/workflows/ci.yml.
+
+       dotnet build only compiles it, with the trimming and AOT analyzers on, so a warning from them fails the
+       normal build too. Publishing needs the platform's native toolchain. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ForkForward.Mediator\ForkForward.Mediator.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

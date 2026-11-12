@@ -10,6 +10,10 @@
          the net11.0 assets only; the net10.0 assets keep the state machines. The source is the same for both. -->
     <Features Condition="'$(TargetFramework)' == 'net11.0'">$(Features);runtime-async=on</Features>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Marks the assemblies as safe for trimming and Native AOT and turns the analyzers for both on. With
+         TreatWarningsAsErrors, code that the trimmer or the AOT compiler cannot follow does not build: it has to be
+         made safe, or carry RequiresUnreferencedCode / RequiresDynamicCode so that applications are told. -->
+    <IsAotCompatible>true</IsAotCompatible>
     <!-- The fork's own strong-name key. The original MediatR key is no longer in the repository. -->
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\ForkForward.Mediator.snk</AssemblyOriginatorKeyFile>

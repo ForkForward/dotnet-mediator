@@ -4,8 +4,10 @@ using Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +21,8 @@ using System.Threading.Tasks;
 public class RequestExceptionActionProcessorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
+    private delegate Task ExceptionAction(TRequest request, Exception exception, CancellationToken cancellationToken);
+
     private readonly IServiceProvider _serviceProvider;
 
     public RequestExceptionActionProcessorBehavior(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
@@ -31,27 +35,22 @@ public class RequestExceptionActionProcessorBehavior<TRequest, TResponse> : IPip
         }
         catch (Exception exception)
         {
-            var exceptionTypes = GetExceptionTypes(exception.GetType());
-
-            var actionsForException = exceptionTypes
-                .SelectMany(exceptionType => GetActionsForException(exceptionType, request))
-                .GroupBy(static actionForException => actionForException.Action.GetType())
-                .Select(static actionForException => actionForException.First())
-                .Select(static actionForException => (MethodInfo: GetMethodInfoForAction(actionForException.ExceptionType), actionForException.Action))
-                .ToList();
+            // Two ways to the same actions, in the same order. With a JIT the action interface is closed over the
+            // exception types at run time. Native AOT cannot do that, so there the actions come from the
+            // registrations that AddRequestExceptionAction made, which know their exception type at compile time.
+            List<ExceptionAction> actionsForException;
+            if (RuntimeFeature.IsDynamicCodeSupported)
+            {
+                actionsForException = FindActionsByReflection(request, exception.GetType());
+            }
+            else
+            {
+                actionsForException = FindRegisteredActions(request, exception.GetType());
+            }
 
             foreach (var actionForException in actionsForException)
             {
-                try
-                {
-                    await ((Task)(actionForException.MethodInfo.Invoke(actionForException.Action, new object[] { request, exception, cancellationToken })
-                                  ?? throw new InvalidOperationException($"Could not create task for action method {actionForException.MethodInfo}."))).ConfigureAwait(false);
-                }
-                catch (TargetInvocationException invocationException) when (invocationException.InnerException != null)
-                {
-                    // Unwrap invocation exception to throw the actual error
-                    ExceptionDispatchInfo.Capture(invocationException.InnerException).Throw();
-                }
+                await actionForException(request, exception, cancellationToken).ConfigureAwait(false);
             }
 
             throw;
@@ -67,6 +66,32 @@ public class RequestExceptionActionProcessorBehavior<TRequest, TResponse> : IPip
         }
     }
 
+    [RequiresDynamicCode("Closes IRequestExceptionAction<,> over the type of the exception that was thrown.")]
+    private List<ExceptionAction> FindActionsByReflection(TRequest request, Type thrownExceptionType)
+        => GetExceptionTypes(thrownExceptionType)
+            .SelectMany(exceptionType => GetActionsForException(exceptionType, request))
+            .GroupBy(static actionForException => actionForException.Action.GetType())
+            .Select(static actionForException => actionForException.First())
+            .Select(static actionForException => InvokeByReflection(GetMethodInfoForAction(actionForException.ExceptionType), actionForException.Action))
+            .ToList();
+
+    private static ExceptionAction InvokeByReflection(MethodInfo methodInfo, object action)
+        => (request, exception, cancellationToken) =>
+        {
+            try
+            {
+                return (Task) (methodInfo.Invoke(action, new object[] { request, exception, cancellationToken })
+                               ?? throw new InvalidOperationException($"Could not create task for action method {methodInfo}."));
+            }
+            catch (TargetInvocationException invocationException) when (invocationException.InnerException != null)
+            {
+                // Unwrap invocation exception to throw the actual error
+                ExceptionDispatchInfo.Capture(invocationException.InnerException).Throw();
+                throw;
+            }
+        };
+
+    [RequiresDynamicCode("Closes IRequestExceptionAction<,> over the type of the exception that was thrown.")]
     private IEnumerable<(Type ExceptionType, object Action)> GetActionsForException(Type exceptionType, TRequest request)
     {
         var exceptionActionInterfaceType = typeof(IRequestExceptionAction<,>).MakeGenericType(typeof(TRequest), exceptionType);
@@ -78,6 +103,7 @@ public class RequestExceptionActionProcessorBehavior<TRequest, TResponse> : IPip
             .Select(action => (exceptionType, action));
     }
 
+    [RequiresDynamicCode("Closes IRequestExceptionAction<,> over the type of the exception that was thrown.")]
     private static MethodInfo GetMethodInfoForAction(Type exceptionType)
     {
         var exceptionActionInterfaceType = typeof(IRequestExceptionAction<,>).MakeGenericType(typeof(TRequest), exceptionType);
@@ -89,4 +115,54 @@ public class RequestExceptionActionProcessorBehavior<TRequest, TResponse> : IPip
 
         return actionMethodInfo;
     }
+
+    // The same search as FindActionsByReflection: exception types from the thrown one up to Exception, for each of
+    // them the actions registered for exactly that type in priority order, and each action class only once.
+    private List<ExceptionAction> FindRegisteredActions(TRequest request, Type thrownExceptionType)
+    {
+        var registrations = _serviceProvider.GetServices<IRegisteredRequestExceptionActions<TRequest>>().ToList();
+
+        return GetExceptionTypes(thrownExceptionType)
+            .SelectMany(exceptionType => registrations
+                .Where(registration => registration.ExceptionType == exceptionType)
+                .SelectMany(registration => HandlersOrderer.Prioritize(registration.Actions.ToList(), request)
+                    .Select(action => (Registration: registration, Action: action))))
+            .GroupBy(static actionForException => actionForException.Action.GetType())
+            .Select(static actionForException => actionForException.First())
+            .Select(static actionForException => (ExceptionAction) ((request, exception, cancellationToken)
+                => actionForException.Registration.Execute(actionForException.Action, request, exception, cancellationToken)))
+            .ToList();
+    }
+}
+
+/// <summary>
+/// The exception actions that were registered for one request type and one exception type, behind an interface
+/// that does not name the exception type. <see cref="RequestExceptionActionProcessorBehavior{TRequest,TResponse}"/>
+/// uses it under Native AOT, where it cannot close <see cref="IRequestExceptionAction{TRequest,TException}"/> over
+/// an exception type it meets at run time.
+/// </summary>
+internal interface IRegisteredRequestExceptionActions<in TRequest>
+    where TRequest : notnull
+{
+    Type ExceptionType { get; }
+
+    IEnumerable<object> Actions { get; }
+
+    Task Execute(object action, TRequest request, Exception exception, CancellationToken cancellationToken);
+}
+
+internal sealed class RegisteredRequestExceptionActions<TRequest, TException> : IRegisteredRequestExceptionActions<TRequest>
+    where TRequest : notnull
+    where TException : Exception
+{
+    private readonly IEnumerable<IRequestExceptionAction<TRequest, TException>> _actions;
+
+    public RegisteredRequestExceptionActions(IEnumerable<IRequestExceptionAction<TRequest, TException>> actions) => _actions = actions;
+
+    public Type ExceptionType => typeof(TException);
+
+    public IEnumerable<object> Actions => _actions;
+
+    public Task Execute(object action, TRequest request, Exception exception, CancellationToken cancellationToken)
+        => ((IRequestExceptionAction<TRequest, TException>) action).Execute(request, (TException) exception, cancellationToken);
 }

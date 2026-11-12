@@ -32,6 +32,7 @@
     <Project Path="src/ForkForward.Mediator/ForkForward.Mediator.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/ForkForward.Mediator.AotTests/ForkForward.Mediator.AotTests.csproj" />
     <Project Path="test/ForkForward.Mediator.Benchmarks.Baseline/ForkForward.Mediator.Benchmarks.Baseline.csproj" />
     <Project Path="test/ForkForward.Mediator.Benchmarks/ForkForward.Mediator.Benchmarks.csproj" />
     <Project Path="test/ForkForward.Mediator.Tests/ForkForward.Mediator.Tests.csproj" />
