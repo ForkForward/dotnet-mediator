@@ -11,7 +11,8 @@ name: Release
 # for a NuGet API key that is valid for one hour, so no NuGet key is stored in this repository.
 # It needs, once, outside this repository:
 # - on nuget.org, a Trusted Publishing policy owned by the ForkForward organization for the repository
-#   ForkForward/dotnet-mediator, the workflow file release.yml and the environment "release";
+#   ForkForward/dotnet-mediator and the workflow file release.yml, with the environment left empty so that
+#   it covers any environment this workflow uses;
 # - the repository secret NUGET_USER: the nuget.org user name of the person who created that policy;
 # - the environment "release" in this repository. With required reviewers on it, the publish job
 #   waits for a maintainer's approval.
