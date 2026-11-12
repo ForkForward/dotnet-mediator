@@ -23,8 +23,10 @@ Where ForkForward.Mediator is going, and the decisions that are still open. Open
 
 - [x] Dependency review on pull requests: known vulnerabilities and licences of added or updated dependencies
 - [ ] Make the CI build, the Dependency review and the Benchmark verdict (`compare with the last release`) checks required on `main`, next to `origin guard`
-- [ ] **Decision needed: which .NET versions the library targets.** Today `netstandard2.0` and `net6.0`, as in MediatR 12.5.0. .NET 6 is out of support and the SDK warns about it (`NETSDK1138`)
-- [ ] Tests, benchmarks and samples on a supported .NET version (today the tests target `net8.0`, the benchmarks and one sample `net6.0`)
+- [x] **Decided (maintainer, 2026-11-12): the library targets `netstandard2.0`, `net10.0` and `net11.0`**, from 12.8.0 on. `net6.0`, which is out of support, is gone. .NET Standard 2.0 stays, so that .NET 8, .NET 9 and .NET Framework keep working; they get that asset. The `net11.0` asset has one dependency fewer: `Microsoft.Extensions.DependencyInjection.Abstractions` is part of the framework from .NET 11 on
+- [x] Tests on .NET 10 and on .NET 11; benchmarks and samples on `net10.0`; CI builds with the .NET 11 SDK
+- [x] Solution in the `.slnx` format; build output in the artifacts layout
+- [ ] The Windsor sample is not part of the solution and does not compile: it uses `ServiceFactory`, which the original removed in 12.0. Fix it or remove it
 - [x] Performance gate: speed and allocations are compared with the last release on pull requests and before publishing (`Benchmark.ps1`, the Benchmark workflow). Seven call benchmarks (`Send` in four forms, `Publish` to one and to three handlers, a stream), one startup benchmark checked for allocations only, and two reference benchmarks that measure the noise of the machine
 - [ ] Fix the intermittent failure of `GenericRequestHandlerTests.ShouldThrowExceptionWhenTimeoutOccurs` (1 of 4 local runs on 2026-11-12). The cause is in the code inherited from 12.5.0: `ServiceRegistrar` keeps the generic-handler registration limits (`MaxTypesClosing`, `RegistrationTimeout` and two more) in static fields, so two `AddMediator` calls running at the same time overwrite each other's limits, and xUnit runs test classes in parallel. It is a real defect for applications that build two containers concurrently with different limits, not only a test problem. Until it is fixed, a red CI run with only this test failing is rerun
 - [ ] Work through the Dependabot updates

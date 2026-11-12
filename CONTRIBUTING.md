@@ -26,21 +26,27 @@ By opening a pull request you confirm that you have the right to submit the chan
 
 ## Building
 
-The project builds and is tested on Windows and on Linux; CI runs both. You need a current .NET SDK (10 or newer) and the .NET 8 runtime, which the tests run on. The solution file is `ForkForward.Mediator.sln`. The library targets `netstandard2.0` and `net6.0`.
+The project builds and is tested on Windows and on Linux; CI runs both. You need the .NET 11 SDK and the .NET 10 runtime. The solution file is `ForkForward.Mediator.slnx`. The library targets `netstandard2.0`, `net10.0` and `net11.0`; the tests run on .NET 10 and on .NET 11; the benchmarks and the samples target `net10.0`.
 
 ```powershell
 ./Build.ps1
 ```
 
-This cleans and builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts` into `artifacts/`.
+This builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`. All build output goes to `artifacts/`, not to `bin` and `obj` folders next to each project:
+
+| Folder | Contents |
+|---|---|
+| `artifacts/bin/<project>/<configuration>` | compiled assemblies |
+| `artifacts/obj/<project>` | intermediate files |
+| `artifacts/TestResults` | test results (`.trx`) |
+| `artifacts/package/release` | the NuGet packages and their symbols |
+| `artifacts/benchmarks` | the measurements and the report of `Benchmark.ps1` |
 
 To run only the tests:
 
 ```powershell
 dotnet test test/ForkForward.Mediator.Tests
 ```
-
-The SDK prints warning `NETSDK1138` for the projects that target `net6.0`. It is known; the target frameworks are an open decision in [ROADMAP.md](ROADMAP.md).
 
 ## Performance
 

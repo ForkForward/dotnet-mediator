@@ -97,10 +97,10 @@ jobs:
       if: steps.decide.outputs.measure == 'true'
       uses: actions/setup-dotnet@v6
       with:
-        # The .NET 10 SDK builds everything. The benchmarks target net8.0 and need the .NET 8 runtime.
+        # The .NET 11 SDK builds everything: the library has a net11.0 target. The benchmarks run on .NET 10.
         dotnet-version: |
-          8.0.x
           10.0.x
+          11.0.x
     # This job fails only when the benchmarks did not build or did not run. Slower or more allocations
     # is recorded in verdict.json and judged together with the other runner's result by the verdict job.
     - name: Compare with the baseline

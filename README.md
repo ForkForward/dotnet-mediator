@@ -40,7 +40,7 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
-- The first stable release is `12.7.0`, on nuget.org: [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator), with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) in the same version. What changed in each release is in [CHANGELOG.md](CHANGELOG.md); the plan is in [ROADMAP.md](ROADMAP.md).
+- The current release is `12.8.0`, on nuget.org: [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator), with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) in the same version. It runs on .NET 10 and .NET 11 with assets of their own, and on everything that supports .NET Standard 2.0, which includes .NET 8, .NET 9 and .NET Framework 4.6.2 and later. What changed in each release is in [CHANGELOG.md](CHANGELOG.md); the plan is in [ROADMAP.md](ROADMAP.md).
 
   ```
   dotnet add package ForkForward.Mediator
@@ -113,13 +113,15 @@ Reference `ForkForward.Mediator.Contracts` alone where your requests and notific
 
 ## Building
 
-The project builds and is tested on Windows and on Linux. You need a current .NET SDK (10 or newer) and the .NET 8 runtime, which the tests run on. The library targets `netstandard2.0` and `net6.0`, as MediatR 12.5.0 does.
+The project builds and is tested on Windows and on Linux. You need the .NET 11 SDK and the .NET 10 runtime: the library targets `netstandard2.0`, `net10.0` and `net11.0`, and the tests run on .NET 10 and on .NET 11.
 
 ```powershell
 ./Build.ps1
 ```
 
-This builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts` into `artifacts/`. It runs under PowerShell on both systems.
+This builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`. It runs under PowerShell on both systems.
+
+All build output goes to `artifacts/` instead of `bin` and `obj` folders next to each project: the packages to `artifacts/package/release`, test results to `artifacts/TestResults`.
 
 ## Reporting problems and contributing
 

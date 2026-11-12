@@ -53,10 +53,10 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
       with:
-        # The .NET 10 SDK builds everything. The tests target net8.0 and need the .NET 8 runtime.
+        # The .NET 11 SDK builds everything: the library has a net11.0 target. The tests run on .NET 10 and on .NET 11.
         dotnet-version: |
-          8.0.x
           10.0.x
+          11.0.x
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
@@ -65,7 +65,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: artifacts-${{ matrix.os }}
-        # The package and its symbols, and the test results.
+        # Test results and packages only; artifacts/bin and artifacts/obj are build output.
         path: |
-          artifacts/**
-          test/**/TestResults/**
+          artifacts/TestResults/**
+          artifacts/package/**

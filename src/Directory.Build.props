@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- One version for both packages, taken from the git tags: a tag v12.7.0 builds 12.7.0, a tag
-         v12.8.0-preview.1 builds 12.8.0-preview.1. Commits after the last tag build a preview, for example
-         12.7.1-preview.0.4 for the fourth commit after v12.7.0.
+    <!-- One version for both packages, taken from the git tags: a tag v12.8.0 builds 12.8.0, a tag
+         v12.9.0-preview.1 builds 12.9.0-preview.1. Commits after the last tag build a preview, for example
+         12.8.1-preview.0.4 for the fourth commit after v12.8.0.
          The minimum is the fork's first release line. 12.6 is skipped: its only version, 12.6.0-preview.1, was
          published with the original assembly names. -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>12.7</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>12.8</MinVerMinimumMajorMinor>
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
 
@@ -46,7 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <!-- Source Link needs no package: it has been part of the .NET SDK since version 8. -->
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="All" />
   </ItemGroup>
 

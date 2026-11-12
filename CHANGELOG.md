@@ -4,6 +4,17 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [12.8.0] - 2026-11-12
+
+The library moves to current .NET. There are no changes to its code or to what it does.
+
+### Changed
+
+- **Target frameworks: `netstandard2.0`, `net10.0` and `net11.0`.** `net6.0`, which is out of support, is gone. Applications on .NET 10 and .NET 11 get an asset built for their framework. Everything else that supports .NET Standard 2.0, which includes .NET 8, .NET 9 and .NET Framework, keeps working and now gets the `netstandard2.0` asset; for .NET 6 to .NET 9 that adds the dependency `Microsoft.Bcl.AsyncInterfaces`, which the `net6.0` asset did not need.
+- On .NET 11 the package no longer depends on `Microsoft.Extensions.DependencyInjection.Abstractions`: it is part of the framework there.
+- The build no longer uses the package `Microsoft.SourceLink.GitHub` 8.0.0, whose dependency `Microsoft.Build.Tasks.Git` 8.0.0 has a known vulnerability ([GHSA-23fw-v26w-5fgq](https://github.com/advisories/GHSA-23fw-v26w-5fgq)). It was used only while building and was never part of the published packages. Source Link still works: it has been part of the .NET SDK since version 8.
+- For contributors: the solution is `ForkForward.Mediator.slnx`, all build output goes to `artifacts/`, and building needs the .NET 11 SDK.
+
 ## [12.7.1] - 2026-11-12
 
 A maintenance release. The library is the same as in 12.7.0; there are no changes to the code.
@@ -31,6 +42,7 @@ There is no 12.6.0. The only version in that line is `12.6.0-preview.1`, which s
 
 - The scripts and workflow steps that pushed packages to the original project's feeds.
 
-[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.1...HEAD
+[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v12.8.0...HEAD
+[12.8.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.1...v12.8.0
 [12.7.1]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.0...v12.7.1
 [12.7.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.5.0...v12.7.0
