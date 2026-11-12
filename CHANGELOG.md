@@ -4,6 +4,14 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [12.7.1] - 2026-11-12
+
+A maintenance release. The library is the same as in 12.7.0; there are no changes to the code.
+
+### Changed
+
+- Every release is now compared with the previous one before it is published, and every pull request that touches the library is compared before it is merged: a call must not be more than 10 % slower, and nothing may allocate more memory. This release is the first that went through the comparison, against 12.7.0. How it works is in the Performance section of [CONTRIBUTING.md](CONTRIBUTING.md#performance).
+
 ## [12.7.0] - 2026-11-12
 
 The first stable release of ForkForward.Mediator. It is MediatR 12.5.0 (commit `8a64581e`, 2025-03-24), the last release under the Apache License 2.0, with its own identity and the build and release infrastructure of this fork. There are no changes to what the library does.
@@ -23,5 +31,6 @@ There is no 12.6.0. The only version in that line is `12.6.0-preview.1`, which s
 
 - The scripts and workflow steps that pushed packages to the original project's feeds.
 
-[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.0...HEAD
+[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.1...HEAD
+[12.7.1]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.0...v12.7.1
 [12.7.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.5.0...v12.7.0
