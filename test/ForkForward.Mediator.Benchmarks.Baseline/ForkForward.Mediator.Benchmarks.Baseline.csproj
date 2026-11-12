@@ -22,18 +22,21 @@
     <RootNamespace>Benchmarks</RootNamespace>
     <IsPackable>false</IsPackable>
     <!-- Packages with the original namespace also have the original registration names (AddMediatR,
-         MediatRServiceConfiguration). Library.cs is the only source file that depends on this. -->
-    <DefineConstants Condition="'$(BaselineNamespace)' == 'MediatR'">$(DefineConstants);ORIGINAL_NAMES</DefineConstants>
+         MediatRServiceConfiguration). One of the two files in Names/ of the benchmark project supplies the names;
+         no source file is compiled conditionally. -->
+    <LibraryNamesFile>ForkNames.cs</LibraryNamesFile>
+    <LibraryNamesFile Condition="'$(BaselineNamespace)' == 'MediatR'">OriginalNames.cs</LibraryNamesFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\ForkForward.Mediator.Benchmarks\**\*.cs" Exclude="..\ForkForward.Mediator.Benchmarks\bin\**;..\ForkForward.Mediator.Benchmarks\obj\**" LinkBase="Benchmarks" />
+    <Compile Include="..\ForkForward.Mediator.Benchmarks\**\*.cs" Exclude="..\ForkForward.Mediator.Benchmarks\bin\**;..\ForkForward.Mediator.Benchmarks\obj\**;..\ForkForward.Mediator.Benchmarks\Names\**" LinkBase="Benchmarks" />
+    <Compile Include="..\ForkForward.Mediator.Benchmarks\Names\$(LibraryNamesFile)" Link="Benchmarks\Names\$(LibraryNamesFile)" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="$(BaselinePackage)" Version="[$(BaselineVersion)]" />
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>

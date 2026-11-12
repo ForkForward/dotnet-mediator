@@ -1,11 +1,5 @@
-// The only source file that knows what the library's registration is called. The baseline project defines
-// ORIGINAL_NAMES when it compiles these sources against a package that still has the original names.
-#if ORIGINAL_NAMES
-global using LibraryConfiguration = Microsoft.Extensions.DependencyInjection.MediatRServiceConfiguration;
-#else
-global using LibraryConfiguration = Microsoft.Extensions.DependencyInjection.MediatorServiceConfiguration;
-#endif
-
+// The containers the benchmarks use. AddLibrary and LibraryConfiguration come from one of the two files in Names/,
+// so that the same sources also compile against a package that still has the original registration names.
 using System;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,13 +8,6 @@ namespace Benchmarks;
 
 public static class Library
 {
-    public static IServiceCollection AddLibrary(this IServiceCollection services, Action<LibraryConfiguration> configure)
-#if ORIGINAL_NAMES
-        => services.AddMediatR(configure);
-#else
-        => services.AddMediator(configure);
-#endif
-
     /// <summary>Handlers found by scanning this assembly, and nothing around them.</summary>
     public static IServiceProvider Plain()
     {

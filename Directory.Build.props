@@ -11,7 +11,8 @@
     <!-- Said explicitly: without it the projects below src/, which have a Directory.Build.props of their own,
          would write to src/artifacts. -->
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
-    <LangVersion>10.0</LangVersion>
+    <!-- No LangVersion: each target framework gets the C# version the SDK pairs with it, C# 14 for net10.0 and
+         C# 15 for net11.0. Code that has to compile for both uses what both have. -->
     <NoWarn>$(NoWarn);CS1701;CS1702;CS1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
