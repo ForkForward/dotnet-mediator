@@ -42,17 +42,22 @@ internal class StreamRequestHandlerWrapperImpl<TRequest, TResponse>
             .GetRequiredService<IStreamRequestHandler<TRequest, TResponse>>()
             .Handle((TRequest) request, cancellationToken);
 
-        var items = serviceProvider
-            .GetServices<IStreamPipelineBehavior<TRequest, TResponse>>()
-            .Reverse()
-            .Aggregate(
-                (StreamHandlerDelegate<TResponse>) Handler, 
-                (next, pipeline) => () => pipeline.Handle(
-                    (TRequest) request, 
-                    () => NextWrapper(next(), cancellationToken),
-                    cancellationToken
-                )
-            )();
+        // A loop and not Reverse().Aggregate(); see RequestHandlerWrapperImpl<TRequest, TResponse>.
+        StreamHandlerDelegate<TResponse> next = Handler;
+        var registered = serviceProvider.GetServices<IStreamPipelineBehavior<TRequest, TResponse>>();
+        var behaviors = registered as IStreamPipelineBehavior<TRequest, TResponse>[] ?? registered.ToArray();
+        for (var index = behaviors.Length - 1; index >= 0; index--)
+        {
+            var behavior = behaviors[index];
+            var inner = next;
+            next = () => behavior.Handle(
+                (TRequest) request,
+                () => NextWrapper(inner(), cancellationToken),
+                cancellationToken
+            );
+        }
+
+        var items = next();
 
         await foreach ( var item in items.WithCancellation(cancellationToken) )
         {

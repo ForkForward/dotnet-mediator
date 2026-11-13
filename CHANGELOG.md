@@ -23,6 +23,7 @@ This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET 
 ### Changed
 
 - The package's project website on nuget.org is the documentation site instead of the GitHub repository; the repository is still linked as the source. Both package readmes link the documentation.
+- **Fewer allocations per call, most of all under Native AOT.** The behaviors around a request and around a stream are put together with a loop instead of LINQ, and the handlers of a notification reach the publisher as an array. LINQ needed a delegate on every call, which a JIT can remove once it has inlined everything and a program compiled ahead of time cannot; and an application published with Native AOT gets the LINQ that is built for size, which allocates more. Measured on .NET 10: `Send` without behaviors allocates 112 bytes instead of 160 under Native AOT and 128 as before with a JIT; `Publish` to one handler 240 instead of 296 under Native AOT and 272 instead of 288 with a JIT; `Send` through a behavior, a pre-processor and a post-processor 952 instead of 1096 and 1048. What changes for your code: a notification publisher of your own, or an override of `Mediator.PublishCore`, is given an array instead of a lazy sequence, with the same executors in the same order; and with a container that returns a lazy sequence for `IEnumerable<T>`, all handlers of a notification are created before the first one is called.
 
 ### Fixed
 

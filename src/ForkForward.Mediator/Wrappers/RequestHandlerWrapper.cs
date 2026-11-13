@@ -37,11 +37,20 @@ public class RequestHandlerWrapperImpl<TRequest, TResponse> : RequestHandlerWrap
         Task<TResponse> Handler(CancellationToken t = default) => serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>()
             .Handle((TRequest) request, t == default ? cancellationToken : t);
 
-        return serviceProvider
-            .GetServices<IPipelineBehavior<TRequest, TResponse>>()
-            .Reverse()
-            .Aggregate((RequestHandlerDelegate<TResponse>) Handler,
-                (next, pipeline) => (t) => pipeline.Handle((TRequest) request, next, t == default ? cancellationToken : t))();
+        // The behaviors wrap the handler, the one registered first outermost. This is a loop and not
+        // Reverse().Aggregate(): LINQ takes the step as a delegate, which is created on every call. A JIT can
+        // remove that allocation once it has inlined everything; a program compiled ahead of time cannot.
+        RequestHandlerDelegate<TResponse> next = Handler;
+        var registered = serviceProvider.GetServices<IPipelineBehavior<TRequest, TResponse>>();
+        var behaviors = registered as IPipelineBehavior<TRequest, TResponse>[] ?? registered.ToArray();
+        for (var index = behaviors.Length - 1; index >= 0; index--)
+        {
+            var behavior = behaviors[index];
+            var inner = next;
+            next = t => behavior.Handle((TRequest) request, inner, t == default ? cancellationToken : t);
+        }
+
+        return next();
     }
 }
 
@@ -63,10 +72,17 @@ public class RequestHandlerWrapperImpl<TRequest> : RequestHandlerWrapper
             return Unit.Value;
         }
 
-        return serviceProvider
-            .GetServices<IPipelineBehavior<TRequest, Unit>>()
-            .Reverse()
-            .Aggregate((RequestHandlerDelegate<Unit>) Handler,
-                (next, pipeline) => (t) => pipeline.Handle((TRequest) request, next, t == default ? cancellationToken : t))();
+        // A loop and not Reverse().Aggregate(); see RequestHandlerWrapperImpl<TRequest, TResponse>.
+        RequestHandlerDelegate<Unit> next = Handler;
+        var registered = serviceProvider.GetServices<IPipelineBehavior<TRequest, Unit>>();
+        var behaviors = registered as IPipelineBehavior<TRequest, Unit>[] ?? registered.ToArray();
+        for (var index = behaviors.Length - 1; index >= 0; index--)
+        {
+            var behavior = behaviors[index];
+            var inner = next;
+            next = t => behavior.Handle((TRequest) request, inner, t == default ? cancellationToken : t);
+        }
+
+        return next();
     }
 }
