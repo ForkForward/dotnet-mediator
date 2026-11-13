@@ -4,7 +4,9 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
-This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET Framework or another .NET Standard 2.0 platform stay on 12.8.
+## [13.0.0] - 2026-11-13
+
+The first release of line 13. It targets .NET 10 and .NET 11 only, uses the runtime's own async support on .NET 11, and works in applications that are trimmed or published with Native AOT. Applications on .NET 8, .NET 9, .NET Framework or another .NET Standard 2.0 platform stay on 12.8.
 
 ### Breaking
 
@@ -14,10 +16,9 @@ This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET 
 
 ### Added
 
-- **Native AOT and trimming.** The library is marked `IsAotCompatible`. Handlers can be registered one by one, without reflection: `AddRequestHandler`, `AddNotificationHandler`, `AddStreamRequestHandler`, `AddRequestExceptionHandler` and `AddRequestExceptionAction` on `MediatorServiceConfiguration`. With them `AddMediator` needs no assembly. What works under Native AOT and what is different is on [Native AOT and trimming](docs/source/Native-AOT.md); a test application is published with Native AOT and run on every change.
+- **Native AOT and trimming.** The library is marked `IsAotCompatible`. Handlers can be registered one by one, without reflection: `AddRequestHandler`, `AddNotificationHandler`, `AddStreamRequestHandler`, `AddRequestExceptionHandler` and `AddRequestExceptionAction` on `MediatorServiceConfiguration`. With them `AddMediator` needs no assembly. What works under Native AOT and what is different is on [Native AOT and trimming](https://forkforward.dev/dotnet-mediator/Native-AOT/); a test application is published with Native AOT and run on every change.
 - **Runtime async on .NET 11.** The `net11.0` assets are compiled with runtime async: the .NET 11 runtime runs the library's async methods itself, without compiler-generated state machines. The `net10.0` assets are compiled as before. There is one source for both and no conditional compilation.
 - `Send` for a request without a response and `Publish` skip the lookup of the message type when the object is exactly of the type given as the type argument.
-
 - Documentation at [forkforward.dev/dotnet-mediator](https://forkforward.dev/dotnet-mediator/): getting started, requests, notifications, streams, pipeline behaviors, exception handling, dependency injection and the guide Moving from MediatR 12. It was written for this fork from its code; the original project's wiki is not used.
 
 ### Changed
@@ -67,7 +68,8 @@ There is no 12.6.0. The only version in that line is `12.6.0-preview.1`, which s
 
 - The scripts and workflow steps that pushed packages to the original project's feeds.
 
-[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v12.8.0...HEAD
+[Unreleased]: https://github.com/ForkForward/dotnet-mediator/compare/v13.0.0...HEAD
+[13.0.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.8.0...v13.0.0
 [12.8.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.1...v12.8.0
 [12.7.1]: https://github.com/ForkForward/dotnet-mediator/compare/v12.7.0...v12.7.1
 [12.7.0]: https://github.com/ForkForward/dotnet-mediator/compare/v12.5.0...v12.7.0
