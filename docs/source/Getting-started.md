@@ -25,6 +25,9 @@ builder.Services.AddMediator(cfg => cfg.RegisterServicesFromAssemblyContaining<P
 Give it every assembly that contains handlers: `RegisterServicesFromAssemblyContaining<T>()` once per assembly, or
 `RegisterServicesFromAssemblies(...)`. All options are on [Dependency injection](Dependency-injection.md).
 
+Scanning uses reflection. An application that is trimmed or published with Native AOT registers each handler by
+name instead; see [Native AOT and trimming](Native-AOT.md).
+
 ## Send a request
 
 A request is a class or record that implements `IRequest<TResponse>`. It has exactly one handler:

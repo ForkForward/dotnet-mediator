@@ -4,13 +4,30 @@ All notable changes to ForkForward.Mediator. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+This is line 13: .NET 10 and .NET 11 only. Applications on .NET 8, .NET 9, .NET Framework or another .NET Standard 2.0 platform stay on 12.8.
+
+### Breaking
+
+- **No .NET Standard 2.0 asset.** Both packages target `net10.0` and `net11.0` and nothing else. .NET 8 and .NET 9 went out of support on 2026-11-10.
+- `Microsoft.Extensions.DependencyInjection.Abstractions` 10.0.0 instead of 8.0.0 on .NET 10; on .NET 11 it is part of the framework, as before. The packages `IsExternalInit` and `Microsoft.Bcl.AsyncInterfaces` are no longer needed.
+- An application that is trimmed or published with Native AOT now gets the warnings IL2026 and IL3050 where it calls `RegisterServicesFromAssembly`, `RegisterServicesFromAssemblyContaining` or `RegisterServicesFromAssemblies`, and IL2026 for `AddOpenBehaviors` with a list of types. Scanning never worked there; the warnings say so at compile time. Applications that are not trimmed see nothing.
+
 ### Added
+
+- **Native AOT and trimming.** The library is marked `IsAotCompatible`. Handlers can be registered one by one, without reflection: `AddRequestHandler`, `AddNotificationHandler`, `AddStreamRequestHandler`, `AddRequestExceptionHandler` and `AddRequestExceptionAction` on `MediatorServiceConfiguration`. With them `AddMediator` needs no assembly. What works under Native AOT and what is different is on [Native AOT and trimming](docs/source/Native-AOT.md); a test application is published with Native AOT and run on every change.
+- **Runtime async on .NET 11.** The `net11.0` assets are compiled with runtime async: the .NET 11 runtime runs the library's async methods itself, without compiler-generated state machines. The `net10.0` assets are compiled as before. There is one source for both and no conditional compilation.
+- `Send` for a request without a response and `Publish` skip the lookup of the message type when the object is exactly of the type given as the type argument.
 
 - Documentation at [forkforward.dev/dotnet-mediator](https://forkforward.dev/dotnet-mediator/): getting started, requests, notifications, streams, pipeline behaviors, exception handling, dependency injection and the guide Moving from MediatR 12. It was written for this fork from its code; the original project's wiki is not used.
 
 ### Changed
 
 - The package's project website on nuget.org is the documentation site instead of the GitHub repository; the repository is still linked as the source. Both package readmes link the documentation.
+- **Fewer allocations per call, most of all under Native AOT.** The behaviors around a request and around a stream are put together with a loop instead of LINQ, and the handlers of a notification reach the publisher as an array. LINQ needed a delegate on every call, which a JIT can remove once it has inlined everything and a program compiled ahead of time cannot; and an application published with Native AOT gets the LINQ that is built for size, which allocates more. Measured on .NET 10: `Send` without behaviors allocates 112 bytes instead of 160 under Native AOT and 128 as before with a JIT; `Publish` to one handler 240 instead of 296 under Native AOT and 272 instead of 288 with a JIT; `Send` through a behavior, a pre-processor and a post-processor 952 instead of 1096 and 1048. What changes for your code: a notification publisher of your own, or an override of `Mediator.PublishCore`, is given an array instead of a lazy sequence, with the same executors in the same order; and with a container that returns a lazy sequence for `IEnumerable<T>`, all handlers of a notification are created before the first one is called.
+
+### Fixed
+
+- **Two registrations at the same time no longer share their limits.** The limits for generic request handlers (`MaxGenericTypeParameters`, `MaxTypesClosing`, `MaxGenericTypeRegistrations`) and `RegistrationTimeout` were kept in static fields, so an `AddMediator` call running at the same time as another one could be held to the other's limits or time out by the other's timeout. Each registration now uses the configuration it was given. If you call `ServiceRegistrar.AddMediatorClasses` or `AddMediatorClassesWithTimeout` directly, they take the limits and the timeout from their `configuration` argument; `SetGenericRequestHandlerRegistrationLimitations` now only matters for direct calls of `ServiceRegistrar.GenerateCombinations`. This was also why the test `ShouldThrowExceptionWhenTimeoutOccurs` failed now and then.
 
 ## [12.8.0] - 2026-11-12
 

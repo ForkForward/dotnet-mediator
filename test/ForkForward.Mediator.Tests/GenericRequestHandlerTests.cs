@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Xunit;
 using System.Reflection.PortableExecutable;
 using ForkForward.Mediator.Tests.MicrosoftExtensionsDI;
+using ForkForward.Mediator.Registration;
 
 namespace ForkForward.Mediator.Tests
 {
@@ -172,6 +173,46 @@ namespace ForkForward.Mediator.Tests
                 });
             })
             .Message.ShouldBe("The generic handler registration process timed out.");
+        }
+
+        [Fact]
+        public void ShouldTakeTheLimitsFromItsOwnConfiguration()
+        {
+            // Another registration in the same process has no limits at all...
+            ServiceRegistrar.SetGenericRequestHandlerRegistrationLimitations(new MediatorServiceConfiguration
+            {
+                MaxGenericTypeParameters = 0,
+                MaxGenericTypeRegistrations = 0,
+                MaxTypesClosing = 0
+            });
+
+            // ...and this one, with the default limits, is still held to its own.
+            var configuration = new MediatorServiceConfiguration { RegisterGenericHandlers = true };
+            configuration.RegisterServicesFromAssembly(GenerateTypesClosingExceedsMaximumAssembly());
+
+            Should.Throw<ArgumentException>(() => ServiceRegistrar.AddMediatorClassesWithTimeout(new ServiceCollection(), configuration))
+                .Message.ShouldContain("One of the generic type parameter's count of types that can close exceeds the maximum length allowed (100)");
+        }
+
+        [Fact]
+        public void ShouldTakeTheTimeoutFromItsOwnConfiguration()
+        {
+            // Another registration in the same process has the default limits and a long timeout...
+            ServiceRegistrar.SetGenericRequestHandlerRegistrationLimitations(new MediatorServiceConfiguration());
+
+            // ...and this one, without limits and with a short timeout, still times out.
+            var configuration = new MediatorServiceConfiguration
+            {
+                MaxGenericTypeParameters = 0,
+                MaxGenericTypeRegistrations = 0,
+                MaxTypesClosing = 0,
+                RegistrationTimeout = 1000,
+                RegisterGenericHandlers = true
+            };
+            configuration.RegisterServicesFromAssembly(GenerateTimeoutOccursAssembly());
+
+            Should.Throw<TimeoutException>(() => ServiceRegistrar.AddMediatorClassesWithTimeout(new ServiceCollection(), configuration))
+                .Message.ShouldBe("The generic handler registration process timed out.");
         }
 
         [Fact]

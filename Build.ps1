@@ -39,6 +39,13 @@ exec { & dotnet build -c Release }
 
 exec { & dotnet test -c Release --no-build --results-directory $testResults -l trx }
 
+# The scenarios of the Native AOT test application, here with a JIT and with dynamic code switched off, which is
+# what the SDK does for a project with PublishAot. It takes the code paths the library takes under Native AOT
+# and needs no native toolchain. AotTest.ps1 publishes the same program with Native AOT and runs that.
+foreach ($framework in 'net10.0', 'net11.0') {
+    exec { & dotnet run -c Release --no-build -f $framework --project ./test/ForkForward.Mediator.AotTests/ForkForward.Mediator.AotTests.csproj }
+}
+
 exec { & dotnet pack ./src/ForkForward.Mediator.Contracts/ForkForward.Mediator.Contracts.csproj -c Release --no-build }
 
 exec { & dotnet pack ./src/ForkForward.Mediator/ForkForward.Mediator.csproj -c Release --no-build }

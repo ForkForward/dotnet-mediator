@@ -21,10 +21,23 @@ public class NotificationHandlerWrapperImpl<TNotification> : NotificationHandler
         Func<IEnumerable<NotificationHandlerExecutor>, INotification, CancellationToken, Task> publish,
         CancellationToken cancellationToken)
     {
-        var handlers = serviceFactory
-            .GetServices<INotificationHandler<TNotification>>()
-            .Select(static x => new NotificationHandlerExecutor(x, (theNotification, theToken) => x.Handle((TNotification)theNotification, theToken)));
+        // An array and not Select(): what a LINQ iterator costs depends on which LINQ the application has.
+        // An application published with Native AOT gets the one built for size, which allocates more per call.
+        // The publishers that come with the library walk an array without an enumerator object.
+        var registered = serviceFactory.GetServices<INotificationHandler<TNotification>>();
+        var handlers = registered as INotificationHandler<TNotification>[] ?? registered.ToArray();
+        if (handlers.Length == 0)
+        {
+            return publish(Array.Empty<NotificationHandlerExecutor>(), notification, cancellationToken);
+        }
 
-        return publish(handlers, notification, cancellationToken);
+        var executors = new NotificationHandlerExecutor[handlers.Length];
+        for (var index = 0; index < handlers.Length; index++)
+        {
+            var handler = handlers[index];
+            executors[index] = new NotificationHandlerExecutor(handler, (theNotification, theToken) => handler.Handle((TNotification) theNotification, theToken));
+        }
+
+        return publish(executors, notification, cancellationToken);
     }
 }

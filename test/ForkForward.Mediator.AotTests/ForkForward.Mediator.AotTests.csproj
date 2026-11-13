@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A console application that is published with Native AOT and then run: the proof that the library works
+       without a JIT and without reflection over types the compiler cannot see. CI publishes and runs it on
+       Linux and on Windows, for .NET 10 and for .NET 11; see .github/workflows/ci.yml.
+
+       dotnet build compiles it with the trimming and AOT analyzers on, so a warning from them fails the normal
+       build too. Build.ps1 also runs it with a JIT: for a project with PublishAot the SDK switches dynamic code
+       off, and the library takes the paths it takes under Native AOT. Publishing with Native AOT needs the
+       platform's native toolchain; AotTest.ps1 does that.
+
+       Started with the argument throughput (two dashes in front), the program measures the calls instead of
+       checking them; see Throughput.cs and AotThroughput.ps1. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ForkForward.Mediator\ForkForward.Mediator.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

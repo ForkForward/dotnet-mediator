@@ -4,6 +4,8 @@ A community fork of [MediatR](https://github.com/LuckyPennySoftware/MediatR), th
 
 In-process messaging with no dependencies: request/response, commands, queries, notifications and events, synchronous and async.
 
+Version 13 targets .NET 10 and .NET 11, uses the runtime's async support on .NET 11, and works in applications published with Native AOT. For .NET 8, .NET 9 and .NET Framework use version 12.8.
+
 ```csharp
 using ForkForward.Mediator;
 

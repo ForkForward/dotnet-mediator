@@ -35,12 +35,14 @@ If you want new features from the original authors, or commercial support, use t
 - A person reviews every change before it is merged and decides what gets released.
 - No code is taken from MediatR 13.0.0 or later, or from any source whose licence does not allow it. The branches and tags of this repository stop at `v12.5.0` of the original.
 - Every change to the library is measured against the last release before it is merged, and again before it is published: it must not be slower and must not allocate more memory.
+- Every change is also published with Native AOT and run, on Linux and on Windows, for .NET 10 and for .NET 11.
 
 The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 ## Status
 
 - The current release is `12.8.0`, on nuget.org: [`ForkForward.Mediator`](https://www.nuget.org/packages/ForkForward.Mediator), with its contracts package [`ForkForward.Mediator.Contracts`](https://www.nuget.org/packages/ForkForward.Mediator.Contracts) in the same version. It runs on .NET 10 and .NET 11 with assets of their own, and on everything that supports .NET Standard 2.0, which includes .NET 8, .NET 9 and .NET Framework 4.6.2 and later. What changed in each release is in [CHANGELOG.md](CHANGELOG.md); the plan is in [ROADMAP.md](ROADMAP.md).
+- **Line 13 is in this repository and not released yet.** It targets .NET 10 and .NET 11 only, uses the runtime's own async support on .NET 11, and works in applications published with Native AOT, where handlers are registered one by one instead of by scanning: [Native AOT and trimming](docs/source/Native-AOT.md). Applications on .NET 8, .NET 9 or .NET Framework stay on 12.8.
 
   ```
   dotnet add package ForkForward.Mediator
@@ -48,7 +50,7 @@ The full rules are in [AI_POLICY.md](AI_POLICY.md).
 
 - Do not use `ForkForward.Mediator` 12.6.0-preview.1 or `ForkForward.Mediator.Contracts` 2.6.0. They were published before the rename described below and still contain `MediatR.dll` and `MediatR.Contracts.dll`. There is no 12.6.0.
 - The code is MediatR 12.5.0 under its own names. The assemblies are `ForkForward.Mediator.dll` and `ForkForward.Mediator.Contracts.dll`, the namespaces start with `ForkForward.Mediator`, and both are signed with the fork's own key. Nothing in the public API carries the old name: `AddMediatR` is `AddMediator` and `MediatRServiceConfiguration` is `MediatorServiceConfiguration`. All other types, their members and the behaviour are those of MediatR 12.5.0. Moving a project is a package reference, a `using` directive and those two names: [Moving from MediatR 12](docs/source/Moving-from-MediatR-12.md).
-- The library builds and its 158 tests pass with a current .NET SDK.
+- The library builds without warnings from the trimming and AOT analyzers, its 185 tests pass on .NET 10 and on .NET 11, and a test application published with Native AOT passes 38 scenarios on both.
 
 ## Using it
 
@@ -115,7 +117,7 @@ Reference `ForkForward.Mediator.Contracts` alone where your requests and notific
 
 ## Building
 
-The project builds and is tested on Windows and on Linux. You need the .NET 11 SDK and the .NET 10 runtime: the library targets `netstandard2.0`, `net10.0` and `net11.0`, and the tests run on .NET 10 and on .NET 11.
+The project builds and is tested on Windows and on Linux. You need the .NET 11 SDK and the .NET 10 runtime: the library targets `net10.0` and `net11.0`, and the tests run on both.
 
 ```powershell
 ./Build.ps1
@@ -124,6 +126,8 @@ The project builds and is tested on Windows and on Linux. You need the .NET 11 S
 This builds the solution, runs all tests and packs `ForkForward.Mediator` and `ForkForward.Mediator.Contracts`. It runs under PowerShell on both systems.
 
 All build output goes to `artifacts/` instead of `bin` and `obj` folders next to each project: the packages to `artifacts/package/release`, test results to `artifacts/TestResults`.
+
+`./AotTest.ps1` publishes the test application with Native AOT and runs it. It needs the platform's native toolchain; see [CONTRIBUTING.md](CONTRIBUTING.md#native-aot).
 
 ## Reporting problems and contributing
 

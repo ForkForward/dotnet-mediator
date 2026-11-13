@@ -13,7 +13,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ForkForward.Mediator\ForkForward.Mediator.csproj" />
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Names/ForkNames.cs is compiled here. Names/OriginalNames.cs is for the baseline project only, when it is
+         pointed at a package that still has the original registration names. -->
+    <Compile Remove="Names\OriginalNames.cs" />
   </ItemGroup>
 
   <ItemGroup>

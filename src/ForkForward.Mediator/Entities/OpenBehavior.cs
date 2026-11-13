@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -15,7 +16,7 @@ public class OpenBehavior
     /// <param name="serviceLifetime">The lifetime of the registered service. Defaults to Transient.</param>
     /// <exception cref="InvalidOperationException">Thrown if the specified type does not implement IPipelineBehavior.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="openBehaviorType"/> is null.</exception>
-    public OpenBehavior(Type openBehaviorType, ServiceLifetime serviceLifetime = ServiceLifetime.Transient)
+    public OpenBehavior([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type openBehaviorType, ServiceLifetime serviceLifetime = ServiceLifetime.Transient)
     {
         ValidatePipelineBehaviorType(openBehaviorType);
         OpenBehaviorType = openBehaviorType;
@@ -25,6 +26,7 @@ public class OpenBehavior
     /// <summary>
     /// The type of the open behavior.
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)]
     public Type OpenBehaviorType { get; }
 
     /// <summary>
@@ -38,7 +40,7 @@ public class OpenBehavior
     /// <param name="openBehaviorType">The type to validate.</param>
     /// <exception cref="InvalidOperationException">Thrown if the type does not implement <see cref="IPipelineBehavior{TRequest, TResponse}"/>.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="openBehaviorType"/> is null.</exception>
-    private static void ValidatePipelineBehaviorType(Type openBehaviorType)
+    private static void ValidatePipelineBehaviorType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type openBehaviorType)
     {
         if (openBehaviorType == null) throw new ArgumentNullException($"Open behavior type can not be null.");
 

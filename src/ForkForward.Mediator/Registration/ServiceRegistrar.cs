@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,22 +12,47 @@ namespace ForkForward.Mediator.Registration;
 
 public static class ServiceRegistrar
 {
-    private static int MaxGenericTypeParameters;
-    private static int MaxTypesClosing;
-    private static int MaxGenericTypeRegistrations;
-    private static int RegistrationTimeout; 
-
-    public static void SetGenericRequestHandlerRegistrationLimitations(MediatorServiceConfiguration configuration)
+    /// <summary>
+    /// The limits on closing generic request handlers. A registration takes them from the configuration it was
+    /// given, never from shared state: two registrations that run at the same time with different limits must
+    /// not see each other's.
+    /// </summary>
+    private sealed class Limits(int maxGenericTypeParameters, int maxTypesClosing, int maxGenericTypeRegistrations)
     {
-        MaxGenericTypeParameters = configuration.MaxGenericTypeParameters;
-        MaxTypesClosing = configuration.MaxTypesClosing;
-        MaxGenericTypeRegistrations = configuration.MaxGenericTypeRegistrations;
-        RegistrationTimeout = configuration.RegistrationTimeout;
+        public static readonly Limits None = new(0, 0, 0);
+
+        public Limits(MediatorServiceConfiguration configuration)
+            : this(configuration.MaxGenericTypeParameters, configuration.MaxTypesClosing, configuration.MaxGenericTypeRegistrations)
+        {
+        }
+
+        public int MaxGenericTypeParameters { get; } = maxGenericTypeParameters;
+        public int MaxTypesClosing { get; } = maxTypesClosing;
+        public int MaxGenericTypeRegistrations { get; } = maxGenericTypeRegistrations;
     }
 
+    // Read only by the public GenerateCombinations, for code that calls it directly.
+    private static Limits LimitsForDirectCalls = Limits.None;
+
+    private const string ScanningNeedsReflection =
+        "Scanning an assembly finds handlers by reflection, which trimming and Native AOT cannot follow. Register each handler with AddRequestHandler, AddNotificationHandler and their siblings on MediatorServiceConfiguration instead.";
+
+    /// <summary>
+    /// Sets the limits that <see cref="GenerateCombinations(Type, List{List{Type}}, int, CancellationToken)"/>
+    /// applies when it is called directly. <see cref="AddMediatorClasses"/> and
+    /// <see cref="AddMediatorClassesWithTimeout"/> do not need this call: they take the limits and the timeout
+    /// from the configuration they are given.
+    /// </summary>
+    public static void SetGenericRequestHandlerRegistrationLimitations(MediatorServiceConfiguration configuration)
+    {
+        LimitsForDirectCalls = new Limits(configuration);
+    }
+
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     public static void AddMediatorClassesWithTimeout(IServiceCollection services, MediatorServiceConfiguration configuration)
     {
-        using(var cts = new CancellationTokenSource(RegistrationTimeout))
+        using(var cts = new CancellationTokenSource(configuration.RegistrationTimeout))
         {
             try
             {
@@ -39,6 +65,8 @@ public static class ServiceRegistrar
         }
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     public static void AddMediatorClasses(IServiceCollection services, MediatorServiceConfiguration configuration, CancellationToken cancellationToken = default)
     {   
 
@@ -89,6 +117,8 @@ public static class ServiceRegistrar
         }
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     private static void ConnectImplementationsToTypesClosing(Type openRequestInterface,
         IServiceCollection services,
         IEnumerable<Assembly> assembliesToScan,
@@ -96,6 +126,7 @@ public static class ServiceRegistrar
         MediatorServiceConfiguration configuration,
         CancellationToken cancellationToken = default)
     {
+        var limits = new Limits(configuration);
         var concretions = new List<Type>();
         var interfaces = new List<Type>();
         var genericConcretions = new List<Type>();
@@ -163,10 +194,12 @@ public static class ServiceRegistrar
         foreach (var @interface in genericInterfaces)
         {
             var exactMatches = genericConcretions.Where(x => x.CanBeCastTo(@interface)).ToList();
-            AddAllConcretionsThatClose(@interface, exactMatches, services, assembliesToScan, cancellationToken);
+            AddAllConcretionsThatClose(@interface, exactMatches, services, assembliesToScan, limits, cancellationToken);
         }
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     private static bool IsMatchingWithInterface(Type? handlerType, Type handlerInterface)
     {
         if (handlerType == null || handlerInterface == null)
@@ -189,6 +222,8 @@ public static class ServiceRegistrar
         return false;
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     private static void AddConcretionsThatCouldBeClosed(Type @interface, List<Type> concretions, IServiceCollection services)
     {
         foreach (var type in concretions
@@ -204,6 +239,8 @@ public static class ServiceRegistrar
         }
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     private static (Type Service, Type Implementation) GetConcreteRegistrationTypes(Type openRequestHandlerInterface, Type concreteGenericTRequest, Type openRequestHandlerImplementation)
     {
         var closingTypes = concreteGenericTRequest.GetGenericArguments();
@@ -222,7 +259,9 @@ public static class ServiceRegistrar
         return (serviceType, openRequestHandlerImplementation.MakeGenericType(closingTypes));
     }
 
-    private static List<Type>? GetConcreteRequestTypes(Type openRequestHandlerInterface, Type openRequestHandlerImplementation, IEnumerable<Assembly> assembliesToScan, CancellationToken cancellationToken)
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
+    private static List<Type>? GetConcreteRequestTypes(Type openRequestHandlerInterface, Type openRequestHandlerImplementation, IEnumerable<Assembly> assembliesToScan, Limits limits, CancellationToken cancellationToken)
     {
         //request generic type constraints       
         var constraintsForEachParameter = openRequestHandlerImplementation
@@ -243,24 +282,27 @@ public static class ServiceRegistrar
 
         var requestGenericTypeDefinition = requestType.GetGenericTypeDefinition();
               
-        var combinations = GenerateCombinations(requestType, typesThatCanCloseForEachParameter, 0, cancellationToken);
+        var combinations = GenerateCombinations(requestType, typesThatCanCloseForEachParameter, 0, limits, cancellationToken);
 
         return combinations.Select(types => requestGenericTypeDefinition.MakeGenericType(types.ToArray())).ToList();
     }
 
     // Method to generate combinations recursively
     public static List<List<Type>> GenerateCombinations(Type requestType, List<List<Type>> lists, int depth = 0, CancellationToken cancellationToken = default)
+        => GenerateCombinations(requestType, lists, depth, LimitsForDirectCalls, cancellationToken);
+
+    private static List<List<Type>> GenerateCombinations(Type requestType, List<List<Type>> lists, int depth, Limits limits, CancellationToken cancellationToken)
     {
         if (depth == 0)
         {
             // Initial checks
-            if (MaxGenericTypeParameters > 0 && lists.Count > MaxGenericTypeParameters)
-                throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. The number of generic type parameters exceeds the maximum allowed ({MaxGenericTypeParameters}).");
+            if (limits.MaxGenericTypeParameters > 0 && lists.Count > limits.MaxGenericTypeParameters)
+                throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. The number of generic type parameters exceeds the maximum allowed ({limits.MaxGenericTypeParameters}).");
 
             foreach (var list in lists)
             {
-                if (MaxTypesClosing > 0 && list.Count > MaxTypesClosing)
-                    throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. One of the generic type parameter's count of types that can close exceeds the maximum length allowed ({MaxTypesClosing}).");
+                if (limits.MaxTypesClosing > 0 && list.Count > limits.MaxTypesClosing)
+                    throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. One of the generic type parameter's count of types that can close exceeds the maximum length allowed ({limits.MaxTypesClosing}).");
             }
 
             // Calculate the total number of combinations
@@ -268,18 +310,18 @@ public static class ServiceRegistrar
             foreach (var list in lists)
             {
                 totalCombinations *= list.Count;
-                if (MaxGenericTypeParameters > 0 && totalCombinations > MaxGenericTypeRegistrations)
-                    throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. The total number of generic type registrations exceeds the maximum allowed ({MaxGenericTypeRegistrations}).");
+                if (limits.MaxGenericTypeParameters > 0 && totalCombinations > limits.MaxGenericTypeRegistrations)
+                    throw new ArgumentException($"Error registering the generic type: {requestType.FullName}. The total number of generic type registrations exceeds the maximum allowed ({limits.MaxGenericTypeRegistrations}).");
             }
         }
 
         if (depth >= lists.Count)
             return new List<List<Type>> { new List<Type>() };
-       
+
         cancellationToken.ThrowIfCancellationRequested();
 
         var currentList = lists[depth];
-        var childCombinations = GenerateCombinations(requestType, lists, depth + 1, cancellationToken);
+        var childCombinations = GenerateCombinations(requestType, lists, depth + 1, limits, cancellationToken);
         var combinations = new List<List<Type>>();
 
         foreach (var item in currentList)
@@ -295,11 +337,13 @@ public static class ServiceRegistrar
         return combinations;
     }
 
-    private static void AddAllConcretionsThatClose(Type openRequestInterface, List<Type> concretions, IServiceCollection services, IEnumerable<Assembly> assembliesToScan, CancellationToken cancellationToken)
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
+    private static void AddAllConcretionsThatClose(Type openRequestInterface, List<Type> concretions, IServiceCollection services, IEnumerable<Assembly> assembliesToScan, Limits limits, CancellationToken cancellationToken)
     {
         foreach (var concretion in concretions)
-        {   
-            var concreteRequests = GetConcreteRequestTypes(openRequestInterface, concretion, assembliesToScan, cancellationToken);
+        {
+            var concreteRequests = GetConcreteRequestTypes(openRequestInterface, concretion, assembliesToScan, limits, cancellationToken);
 
             if (concreteRequests is null)
                 continue;
@@ -338,11 +382,15 @@ public static class ServiceRegistrar
         return type.IsGenericTypeDefinition || type.ContainsGenericParameters;
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     internal static IEnumerable<Type> FindInterfacesThatClose(this Type pluggedType, Type templateType)
     {
         return FindInterfacesThatClosesCore(pluggedType, templateType).Distinct();
     }
 
+    [RequiresUnreferencedCode(ScanningNeedsReflection)]
+    [RequiresDynamicCode(ScanningNeedsReflection)]
     private static IEnumerable<Type> FindInterfacesThatClosesCore(Type pluggedType, Type templateType)
     {
         if (pluggedType == null) yield break;
@@ -397,27 +445,36 @@ public static class ServiceRegistrar
 
         services.TryAdd(notificationPublisherServiceDescriptor);
 
+        // Handlers added one by one, after the ones found by scanning: a request keeps its first handler, and a
+        // handler that scanning has already registered is not registered twice.
+        foreach (var serviceDescriptor in serviceConfiguration.SingleHandlersToRegister)
+        {
+            services.TryAdd(serviceDescriptor);
+        }
+
+        services.TryAddEnumerable(serviceConfiguration.MultipleHandlersToRegister);
+
         // Register pre processors, then post processors, then behaviors
         if (serviceConfiguration.RequestExceptionActionProcessorStrategy == RequestExceptionActionProcessorStrategy.ApplyForUnhandledExceptions)
         {
-            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionActionProcessorBehavior<,>), typeof(IRequestExceptionAction<,>));
-            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionProcessorBehavior<,>), typeof(IRequestExceptionHandler<,,>));
+            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionActionProcessorBehavior<,>), typeof(IRequestExceptionAction<,>), serviceConfiguration.ClosedExceptionActionBehaviors);
+            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionProcessorBehavior<,>), typeof(IRequestExceptionHandler<,,>), serviceConfiguration.ClosedExceptionHandlerBehaviors);
         }
         else
         {
-            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionProcessorBehavior<,>), typeof(IRequestExceptionHandler<,,>));
-            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionActionProcessorBehavior<,>), typeof(IRequestExceptionAction<,>));
+            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionProcessorBehavior<,>), typeof(IRequestExceptionHandler<,,>), serviceConfiguration.ClosedExceptionHandlerBehaviors);
+            RegisterBehaviorIfImplementationsExist(services, typeof(RequestExceptionActionProcessorBehavior<,>), typeof(IRequestExceptionAction<,>), serviceConfiguration.ClosedExceptionActionBehaviors);
         }
 
         if (serviceConfiguration.RequestPreProcessorsToRegister.Any())
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>), ServiceLifetime.Transient));
+            AddBuiltInBehavior(services, typeof(RequestPreProcessorBehavior<,>), serviceConfiguration.ClosedPreProcessorBehaviors);
             services.TryAddEnumerable(serviceConfiguration.RequestPreProcessorsToRegister);
         }
 
         if (serviceConfiguration.RequestPostProcessorsToRegister.Any())
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>), ServiceLifetime.Transient));
+            AddBuiltInBehavior(services, typeof(RequestPostProcessorBehavior<,>), serviceConfiguration.ClosedPostProcessorBehaviors);
             services.TryAddEnumerable(serviceConfiguration.RequestPostProcessorsToRegister);
         }
 
@@ -432,20 +489,54 @@ public static class ServiceRegistrar
         }
     }
 
-    private static void RegisterBehaviorIfImplementationsExist(IServiceCollection services, Type behaviorType, Type subBehaviorType)
+    private static void RegisterBehaviorIfImplementationsExist(IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type behaviorType, Type subBehaviorType,
+        List<ServiceDescriptor> closedForRegisteredRequests)
     {
         var hasAnyRegistrationsOfSubBehaviorType = services
             .Where(service => !service.IsKeyedService)
-            .Select(service => service.ImplementationType)
-            .OfType<Type>()
-            .SelectMany(type => type.GetInterfaces())
-            .Where(type => type.IsGenericType)
-            .Select(type => type.GetGenericTypeDefinition())
-            .Any(type => type == subBehaviorType);
+            .Any(service => IsRegistrationOf(service, subBehaviorType));
 
         if (hasAnyRegistrationsOfSubBehaviorType)
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), behaviorType, ServiceLifetime.Transient));
+            AddBuiltInBehavior(services, behaviorType, closedForRegisteredRequests);
         }
     }
+
+    // With a JIT: the open generic behavior, which the container closes for every request.
+    // Under Native AOT: the behavior closed for each request that was added with AddRequestHandler.
+    // See MediatorServiceConfiguration.RegisterBuiltInBehaviorsClosed.
+    private static void AddBuiltInBehavior(IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type openBehaviorType,
+        List<ServiceDescriptor> closedForRegisteredRequests)
+    {
+        if (MediatorServiceConfiguration.RegisterBuiltInBehaviorsClosed)
+        {
+            services.TryAddEnumerable(closedForRegisteredRequests);
+        }
+        else
+        {
+            services.TryAddEnumerable(new ServiceDescriptor(typeof(IPipelineBehavior<,>), openBehaviorType, ServiceLifetime.Transient));
+        }
+    }
+
+    // A registration counts when its service type is the interface, which is how AddMediator registers these
+    // classes, or when its implementation type implements the interface, which also catches a class that the
+    // application registered under another service type.
+    private static bool IsRegistrationOf(ServiceDescriptor service, Type openInterface)
+    {
+        var serviceType = service.ServiceType;
+        if (serviceType == openInterface || (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == openInterface))
+        {
+            return true;
+        }
+
+        return service.ImplementationType is { } implementationType && ImplementsOpenInterface(implementationType, openInterface);
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "A registration made through the mediator's own methods is recognised by its service type before this is reached. For any other registration, the interfaces of a type that is in use are kept as long as the interface itself is, and these interfaces are referenced by the behaviors that call them.")]
+    private static bool ImplementsOpenInterface(Type implementationType, Type openInterface)
+        => implementationType.GetInterfaces().Any(type => type.IsGenericType && type.GetGenericTypeDefinition() == openInterface);
+
 }

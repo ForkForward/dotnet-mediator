@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Linq;
 using ForkForward.Mediator;
@@ -42,17 +43,31 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddMediator(this IServiceCollection services, 
         MediatorServiceConfiguration configuration)
     {
-        if (!configuration.AssembliesToRegister.Any())
+        if (!configuration.AssembliesToRegister.Any()
+            && configuration.SingleHandlersToRegister.Count == 0
+            && configuration.MultipleHandlersToRegister.Count == 0)
         {
-            throw new ArgumentException("No assemblies found to scan. Supply at least one assembly to scan for handlers.");
+            throw new ArgumentException("No assemblies found to scan. Supply at least one assembly to scan for handlers, or register handlers one by one with AddRequestHandler, AddNotificationHandler and their siblings.");
         }
 
-        ServiceRegistrar.SetGenericRequestHandlerRegistrationLimitations(configuration);
-
-        ServiceRegistrar.AddMediatorClassesWithTimeout(services, configuration);
+        if (configuration.AssembliesToRegister.Any())
+        {
+            ScanAssemblies(services, configuration);
+        }
 
         ServiceRegistrar.AddRequiredServices(services, configuration);
 
         return services;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026",
+        Justification = "Only reached when assemblies were added with RegisterServicesFromAssembly and its siblings. Those methods carry RequiresUnreferencedCode, so the application has already been told.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Only reached when assemblies were added with RegisterServicesFromAssembly and its siblings. Those methods carry RequiresDynamicCode, so the application has already been told.")]
+    private static void ScanAssemblies(IServiceCollection services, MediatorServiceConfiguration configuration)
+    {
+        ServiceRegistrar.SetGenericRequestHandlerRegistrationLimitations(configuration);
+
+        ServiceRegistrar.AddMediatorClassesWithTimeout(services, configuration);
     }
 }

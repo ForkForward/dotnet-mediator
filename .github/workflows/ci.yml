@@ -37,6 +37,71 @@ jobs:
           exit 1
         fi
         echo "No commit made in the original repository after v12.5.0 is in this history."
+  # The library published with Native AOT and run: no JIT, and nothing the compiler has not seen.
+  # See AotTest.ps1 and test/ForkForward.Mediator.AotTests.
+  aot:
+    name: native aot (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        # MinVer computes the version from the tags, so it needs the full history.
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        # The .NET 11 SDK publishes for both target frameworks; the .NET 10 SDK is not needed.
+        dotnet-version: 11.0.x
+    # Native AOT links with the platform's toolchain. Windows runners have the Visual Studio C++ tools.
+    - name: Native toolchain (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends clang zlib1g-dev
+    - name: Publish with Native AOT and run
+      run: ./AotTest.ps1
+      shell: pwsh
+    # The same scenarios in an application that is trimmed but keeps its JIT.
+    - name: Publish trimmed and run
+      run: ./AotTest.ps1 -Trimmed
+      shell: pwsh
+  # A measurement, not a gate: what a call costs once everything is warm, published with Native AOT against
+  # a JIT, both on this runner in turns. The table is in the job summary. It fails only when publishing or a
+  # run fails. See AotThroughput.ps1; the gate is the Benchmark workflow.
+  throughput:
+    name: aot throughput (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    # A full measurement takes about six minutes.
+    timeout-minutes: 30
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        # MinVer computes the version from the tags, so it needs the full history.
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 11.0.x
+    - name: Native toolchain (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends clang zlib1g-dev
+    - name: Measure Native AOT against a JIT
+      run: ./AotThroughput.ps1
+      shell: pwsh
+    - name: Results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: throughput-${{ matrix.os }}
+        path: artifacts/throughput/throughput.md
   build:
     name: build (${{ matrix.os }})
     strategy:

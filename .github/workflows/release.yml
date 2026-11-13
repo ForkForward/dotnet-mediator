@@ -65,6 +65,12 @@ jobs:
     - name: Build and Test
       run: ./Build.ps1
       shell: pwsh
+    # What is released also works published with Native AOT; see AotTest.ps1.
+    - name: Native toolchain
+      run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends clang zlib1g-dev
+    - name: Publish with Native AOT and run
+      run: ./AotTest.ps1
+      shell: pwsh
     - name: Check the package
       id: check
       shell: pwsh
@@ -107,10 +113,10 @@ jobs:
         $contractsPackage = Read-Package $contracts[0]
 
         # The licence and the attribution notice travel with every copy of the packages.
-        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net10.0/ForkForward.Mediator.dll', 'lib/net11.0/ForkForward.Mediator.dll', 'lib/netstandard2.0/ForkForward.Mediator.dll') {
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net10.0/ForkForward.Mediator.dll', 'lib/net11.0/ForkForward.Mediator.dll') {
           if ($mediatorPackage.Entries -notcontains $required) { throw "$($mediator[0].Name) does not contain $required." }
         }
-        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/netstandard2.0/ForkForward.Mediator.Contracts.dll') {
+        foreach ($required in 'LICENSE', 'NOTICE.md', 'PACKAGE.md', 'icon.png', 'lib/net10.0/ForkForward.Mediator.Contracts.dll', 'lib/net11.0/ForkForward.Mediator.Contracts.dll') {
           if ($contractsPackage.Entries -notcontains $required) { throw "$($contracts[0].Name) does not contain $required." }
         }
 
