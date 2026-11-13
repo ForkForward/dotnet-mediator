@@ -10,7 +10,7 @@
        this project again on its own, and only the environment reaches that build. -->
   <PropertyGroup>
     <BaselinePackage Condition="'$(BaselinePackage)' == ''">ForkForward.Mediator</BaselinePackage>
-    <BaselineVersion Condition="'$(BaselineVersion)' == ''">12.8.0</BaselineVersion>
+    <BaselineVersion Condition="'$(BaselineVersion)' == ''">13.0.0</BaselineVersion>
     <!-- The namespace of the baseline package. The benchmark sources do not name it; each side gets it from its
          project. ForkForward.Mediator from 12.7.0 on; MediatR for MediatR itself and for 12.6.0-preview.1. -->
     <BaselineNamespace Condition="'$(BaselineNamespace)' == ''">ForkForward.Mediator</BaselineNamespace>
