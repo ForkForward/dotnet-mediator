@@ -18,6 +18,7 @@
     <File Path=".github/workflows/release.yml" />
     <File Path="AI_POLICY.md" />
     <File Path="AotTest.ps1" />
+    <File Path="AotThroughput.ps1" />
     <File Path="Benchmark.ps1" />
     <File Path="Build.ps1" />
     <File Path="CHANGELOG.md" />

@@ -7,7 +7,10 @@
        dotnet build compiles it with the trimming and AOT analyzers on, so a warning from them fails the normal
        build too. Build.ps1 also runs it with a JIT: for a project with PublishAot the SDK switches dynamic code
        off, and the library takes the paths it takes under Native AOT. Publishing with Native AOT needs the
-       platform's native toolchain; AotTest.ps1 does that. -->
+       platform's native toolchain; AotTest.ps1 does that.
+
+       Started with the argument throughput (two dashes in front), the program measures the calls instead of
+       checking them; see Throughput.cs and AotThroughput.ps1. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net10.0;net11.0</TargetFrameworks>

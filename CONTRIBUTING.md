@@ -42,6 +42,7 @@ This builds the solution, runs all tests and packs `ForkForward.Mediator` and `F
 | `artifacts/package/release` | the NuGet packages and their symbols |
 | `artifacts/benchmarks` | the measurements and the report of `Benchmark.ps1` |
 | `artifacts/aot/<framework>` | the program that `AotTest.ps1` publishes with Native AOT |
+| `artifacts/throughput` | the programs and the report of `AotThroughput.ps1` |
 
 To run only the tests:
 
@@ -66,6 +67,15 @@ docker run --rm -v "${PWD}:/src" -w /src mcr.microsoft.com/dotnet/sdk:11.0-aot p
 ```
 
 CI runs it on Windows and on Ubuntu, for .NET 10 and for .NET 11. A new feature gets a scenario there, in the list of what works or in the list of what is refused.
+
+The same program measures what a call costs once everything is warm, when it is started with `--throughput`. This script publishes it with Native AOT and with a JIT, runs the two in turns and prints the comparison:
+
+```powershell
+./AotThroughput.ps1              # needs the native toolchain
+./AotThroughput.ps1 -Modes jit   # the JIT alone, on any machine
+```
+
+The CI job `aot throughput` runs it on Windows and on Ubuntu and puts the table into the job summary. It is a measurement, not a gate: the numbers of a shared runner say which of the two is faster and roughly by how much, not more.
 
 ## Performance
 

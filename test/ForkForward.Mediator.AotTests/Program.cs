@@ -10,6 +10,9 @@ using ForkForward.Mediator.NotificationPublishers;
 using ForkForward.Mediator.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
+// The other thing this program does: measure the calls instead of checking them. See Throughput.cs.
+if (args.Contains("--throughput")) return await Throughput.Measurement.Run();
+
 var failures = 0;
 
 void Report(string name, bool ok, string detail)
