@@ -74,10 +74,10 @@ for `RegistrationTimeout`.
 
 !!! note "Two containers with different limits at the same time"
 
-    The four limits are kept in static fields while `AddMediator` runs. Two calls that run at the same moment, with
-    different limits, can see each other's values. This is inherited from MediatR 12.5.0 and is recorded in the
-    [roadmap](https://github.com/ForkForward/dotnet-mediator/blob/main/ROADMAP.md) to be fixed. It does not affect
-    an application that builds one container at startup.
+    Each `AddMediator` call uses the limits of the configuration it was given. Two calls that run at the same
+    moment, with different limits, do not affect each other. Up to version 12.8 the four limits were kept in static
+    fields while `AddMediator` ran, so such calls could see each other's values; that was inherited from
+    MediatR 12.5.0 and is fixed in 13.0.0.
 
 Behaviors and processors are added with the methods on [Pipeline behaviors](Pipeline-behaviors.md#register-it).
 
