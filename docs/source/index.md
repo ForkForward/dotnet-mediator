@@ -21,12 +21,6 @@ In-process messaging for .NET: requests with one handler, notifications with man
 dotnet add package ForkForward.Mediator
 ```
 
-!!! note "Version 13 is not released yet"
-
-    These pages describe the code on the `main` branch, which is line 13. The current release on nuget.org is
-    12.8.0. It has everything on these pages except [Native AOT and trimming](Native-AOT.md) and the
-    registration of handlers one by one.
-
 Version 13 runs on .NET 10 and .NET 11, with an asset for each. On .NET 11 it uses the runtime's own async
 support. It also works in applications published with [Native AOT](Native-AOT.md).
 
